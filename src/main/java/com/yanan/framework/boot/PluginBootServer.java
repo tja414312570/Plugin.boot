@@ -1,13 +1,8 @@
 package com.yanan.framework.boot;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import javax.servlet.Filter;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.annotation.WebFilter;
@@ -20,11 +15,9 @@ import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.AprLifecycleListener;
 import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.core.StandardServer;
-import org.apache.catalina.startup.Constants;
 import org.apache.catalina.startup.ContextConfig;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.tomcat.SimpleInstanceManager;
-import org.apache.tomcat.util.buf.UriUtil;
 import org.apache.tomcat.util.descriptor.web.FilterDef;
 import org.apache.tomcat.util.descriptor.web.FilterMap;
 import org.slf4j.LoggerFactory;
@@ -60,6 +53,9 @@ public class PluginBootServer {
 		addPluginContext(configure, pluginBoot);
 		//初始化Tomcat
 		initTomcat(pluginBoot);
+		//设置基本路径
+		setHostAppBase(pluginBoot);
+		//配置ServletContext的监听
 		org.apache.catalina.Context ctx = tomcat.addContext("/", "webapp");// 网络访问路径
 		ctx.setInstanceManager(new SimpleInstanceManager());
 		ctx.addLifecycleListener(new ContextConfig() {
@@ -78,26 +74,25 @@ public class PluginBootServer {
 //				super.lifecycleEvent(event);
 			}
 		});
-
-		Tomcat.addServlet(ctx, "coreServlet", new CoreDispatcher()); // 配置servlet
-		ctx.addServletMappingDecoded("/*", "coreServlet");// 配置servlet映射路径
-
+		//添加核心Servlet
+		Tomcat.addServlet(ctx, "coreServlet", new CoreDispatcher()); 
+		ctx.addServletMappingDecoded("/*", "coreServlet");
+		//添加过滤器
 		addFilter(ctx,configure);
-		StandardServer server = (StandardServer) tomcat.getServer();// 添加监听器，不知何用
-		AprLifecycleListener listener = new AprLifecycleListener();
-		server.addLifecycleListener(listener);
-		// 设置appBase为项目所在目录
-		setHostAppBase(pluginBoot);
-		// 设置WEB-INF文件夹所在目录
-		// 该文件夹下包含web.xml
-		if (pluginBoot.enableWebApp()) {
-			addWebApp(configure);
-		}
+		//增加WebApp
+		addWebApp(configure);
 		tomcat.init();
-		tomcat.start();// 启动tomcat
-		tomcat.getServer().await();// 维持tomcat服务，否则tomcat一启动就会关闭
+		tomcat.start();
+		log.info("Plugin Boot Started Success!");
+		tomcat.getServer().await();
 	}
 
+	
+	/**
+	 * WebContext添加过滤器
+	 * @param ctx
+	 * @param configure
+	 */
 	public static void addFilter(org.apache.catalina.Context ctx, Class<?> configure) {
 //		FilterDef filterDef = new FilterDef();
 //		filterDef.setFilterName(TokenFilter.class.getSimpleName());
@@ -119,7 +114,12 @@ public class PluginBootServer {
 		}
 		
 	}
-
+	/**
+	 * WebContext时添加过滤器
+	 * @param ctx
+	 * @param filter
+	 * @param filterClass
+	 */
 	public static void addFilter(org.apache.catalina.Context ctx, Filter filter, Class<?> filterClass) {
 		WebFilter webFilter = filterClass.getAnnotation(WebFilter.class);
 		if(webFilter != null ) {
@@ -145,7 +145,10 @@ public class PluginBootServer {
 			}
 		}
 	}
-
+	/**
+	 * 初始化Tomcat
+	 * @param pluginBoot
+	 */
 	public static void initTomcat(PluginBoot pluginBoot) {
 		if (tomcat == null) {
 			synchronized (PluginBootServer.class) {
@@ -158,51 +161,18 @@ public class PluginBootServer {
 					Connector connector = new Connector(DEFAULT_PROTOCOL);
 					connector.setPort(pluginBoot.port());
 					tomcat.getService().addConnector(connector);
+					StandardServer server = (StandardServer) tomcat.getServer();
+					AprLifecycleListener listener = new AprLifecycleListener();
+					server.addLifecycleListener(listener);
 				}
 			}
 		}
 	}
-	public static String noDefaultWebXmlPath() {
-        return Constants.NoDefaultWebXml;
-    }
-    protected static URL getWebappConfigFile(String path, String contextName) {
-        File docBase = new File(path);
-        if (docBase.isDirectory()) {
-            return getWebappConfigFileFromDirectory(docBase, contextName);
-        } else {
-            return getWebappConfigFileFromWar(docBase, contextName);
-        }
-    }
-
-    private static URL getWebappConfigFileFromDirectory(File docBase, String contextName) {
-        URL result = null;
-        File webAppContextXml = new File(docBase, Constants.ApplicationContextXml);
-        if (webAppContextXml.exists()) {
-            try {
-                result = webAppContextXml.toURI().toURL();
-            } catch (MalformedURLException e) {
-            	e.printStackTrace();
-//                Logger.getLogger(getLoggerName(getHost(), contextName)).log(Level.WARNING,
-//                        sm.getString("tomcat.noContextXml", docBase), e);
-            }
-        }
-        return result;
-    }
-
-    private static URL getWebappConfigFileFromWar(File docBase, String contextName) {
-        URL result = null;
-        try (JarFile jar = new JarFile(docBase)) {
-            JarEntry entry = jar.getJarEntry(Constants.ApplicationContextXml);
-            if (entry != null) {
-                result = UriUtil.buildJarUrl(docBase, Constants.ApplicationContextXml);
-            }
-        } catch (IOException e) {
-        	e.printStackTrace();
-//            Logger.getLogger(getLoggerName(getHost(), contextName)).log(Level.WARNING,
-//                    sm.getString("tomcat.noContextXml", docBase), e);
-        }
-        return result;
-    }
+    /**
+     * 添加Plugin的扫描上下文
+     * @param configure
+     * @param pluginBoot
+     */
 	public static void addPluginContext(Class<?> configure, PluginBoot pluginBoot) {
 		if (pluginBoot == null || pluginBoot.contextClass().equals(PluginBoot.class)) {
 			// 将class文件上下文添加到Plug中
@@ -212,31 +182,47 @@ public class PluginBootServer {
 		}
 		PlugsFactory.getInstance().init0();
 	}
-
+	/**
+	 * 设置App的基本路径
+	 * @param pluginBoot
+	 */
 	public static void setHostAppBase(PluginBoot pluginBoot) {
 		String userDir = System.getProperty(pluginBoot.appBase()) + File.separator;
 		tomcat.getHost().setAppBase(userDir);
 	}
-
+	/**
+	 * 添加WebApp
+	 * @param configure
+	 */
 	public static void addWebApp(Class<?> configure) {
-		WebApp webApp;
-		if (configure == null) {
-			webApp = getDefaultConfigure(WebApp.class);
-		} else {
-			webApp = configure.getAnnotation(WebApp.class);
-			// 当访问localhost:端口号时，会默认访问该目录下的index.html/jsp页面
-			if (webApp == null) {
-				webApp = getDefaultConfigure(WebApp.class);
+		WebAppGroups webAppGroups = configure.getAnnotation(WebAppGroups.class);
+		if(webAppGroups != null && webAppGroups.enable()) {
+			if(webAppGroups.value().length != 0 ) {
+				for(WebApp webApp : webAppGroups.value()) {
+					tomcat.addWebapp(webApp.contextPath(), webApp.docBase());
+				}
+			}else {
+				WebApp webApp = getDefaultConfigure(WebApp.class);
+				tomcat.addWebapp(webApp.contextPath(), webApp.docBase());
 			}
+		}else {
+			WebApp webApp = configure.getAnnotation(WebApp.class);
+			if(webApp != null)
+				tomcat.addWebapp(webApp.contextPath(), webApp.docBase());
 		}
-		tomcat.addWebapp(webApp.contextPath(), webApp.docBase());
 	}
-
-	@SuppressWarnings("unchecked")
-	private static <T> T getDefaultConfigure(Class<? extends Annotation> annotationClass) {
-		return (T) DefaultBootConfigure.class.getAnnotation(annotationClass);
+	/**
+	 * 获取默认配置
+	 * @param annotationClass
+	 * @return
+	 */
+	private static <T extends Annotation> T getDefaultConfigure(Class<T> annotationClass) {
+		return DefaultBootConfigure.class.getAnnotation(annotationClass);
 	}
-
+	/**
+	 * 停止运行
+	 * @throws LifecycleException
+	 */
 	public static void stop() throws LifecycleException {
 		if (tomcat != null)
 			tomcat.stop();

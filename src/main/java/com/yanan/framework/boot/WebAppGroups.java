@@ -12,5 +12,10 @@ public @interface WebAppGroups {
 	 * WebApp的集合
 	 * @return
 	 */
-	WebApp[] value();
+	WebApp[] value() default {};
+	/**
+	 * 是否启用WebApp支持
+	 * @return
+	 */
+	boolean enable() default true;
 }
