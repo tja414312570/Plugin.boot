@@ -10,7 +10,7 @@ import com.yanan.framework.boot.WebApp;
 import com.yanan.framework.boot.WebContext;
 
 @WebContext(contextPath = "/", docBase = "webapp")
-@WebApp(contextPath = "/", docBase = "webapp")
+@WebApp(contextPath = "/dcxt", docBase = "/Volumes/GENERAL/tomcat work groups/apache-tomcat-8.0.52/webapps/dcxt")
 @PluginBoot(port=8081)
 public class PluginBootServerTest {
 	String contextPath; String docBase;
