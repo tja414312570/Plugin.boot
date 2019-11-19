@@ -10,7 +10,6 @@
 @WebApp(contextPath = "/dcxt", docBase = "/Volumes/GENERAL/tomcat work groups/apache-tomcat-8.0.52/webapps/dcxt")
 @WebApp(contextPath = "/YaNanFrame", docBase = "/Volumes/GENERAL/tomcat work groups/apache-tomcat-8.0.53/webapps/YaNanFrame")
 @PluginBoot(port=8081)
-@PluginBoot(port=8081)
 public class PluginBootServerTest {
 	String contextPath; String docBase;
 	public static void main(String[] args) throws LifecycleException, IOException {
