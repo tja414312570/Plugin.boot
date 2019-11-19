@@ -7,6 +7,7 @@
 * 多WebApp支持
 * 多WebContext支持
 * 优化其它组件以适应此引导中的开发方式
+* 优化默认配置、优化架构和性能
 ```java
 @WebContext(contextPath = "/", docBase = "webapp")
 @WebApp(contextPath = "/dcxt", docBase = "/Volumes/GENERAL/tomcat work groups/apache-tomcat-8.0.52/webapps/dcxt")
