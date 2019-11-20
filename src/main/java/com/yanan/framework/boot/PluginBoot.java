@@ -28,7 +28,7 @@ public @interface PluginBoot {
 	 * 默认使用http协议
 	 * @return
 	 */
-	String DEFAULT_PROTOCOL() default "org.apache.coyote.http11.Http11NioProtocol";
+	String httpProtocol() default HttpProtocol.http11Nio;
 	/**
 	 * 是否应用WebApp
 	 * @return
@@ -44,4 +44,11 @@ public @interface PluginBoot {
 	 * @return
 	 */
 	String baseDir() default ".";
+	/**
+	 * 升级协议
+	 * @return
+	 */
+	String[] upgradeProtocol() default {};
+	
+	
 }

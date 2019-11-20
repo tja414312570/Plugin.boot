@@ -2,6 +2,7 @@ package com.yanan.framework.boot;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.List;
 import javax.servlet.Filter;
 import javax.servlet.ServletContextEvent;
@@ -17,9 +18,12 @@ import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.core.StandardServer;
 import org.apache.catalina.startup.ContextConfig;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.coyote.UpgradeProtocol;
 import org.apache.tomcat.SimpleInstanceManager;
 import org.apache.tomcat.util.descriptor.web.FilterDef;
 import org.apache.tomcat.util.descriptor.web.FilterMap;
+import org.apache.tomcat.util.net.SSLHostConfig;
+import org.apache.tomcat.util.net.SSLHostConfigCertificate;
 import org.slf4j.LoggerFactory;
 
 import com.YaNan.frame.plugin.PlugsFactory;
@@ -27,6 +31,7 @@ import com.YaNan.frame.servlets.CoreDispatcher;
 import com.YaNan.frame.servlets.ServletContextInit;
 import com.YaNan.frame.servlets.session.TokenContextInit;
 import com.YaNan.frame.servlets.session.filter.TokenFilter;
+import com.YaNan.frame.utils.StringUtil;
 
 /**
  * Plugin 引导服务
@@ -52,7 +57,7 @@ public class PluginBootServer {
 			pluginBoot = getDefaultConfigure(PluginBoot.class);
 		addPluginContext(configure, pluginBoot);
 		//初始化Tomcat
-		initTomcat(pluginBoot);
+		initTomcat(pluginBoot,configure);
 		//设置基本路径
 		setHostAppBase(pluginBoot);
 		//配置ServletContext的监听
@@ -94,15 +99,6 @@ public class PluginBootServer {
 	 * @param configure
 	 */
 	public static void addFilter(org.apache.catalina.Context ctx, Class<?> configure) {
-//		FilterDef filterDef = new FilterDef();
-//		filterDef.setFilterName(TokenFilter.class.getSimpleName());
-//		filterDef.setFilterClass(TokenFilter.class.getName());
-//		ctx.addFilterDef(filterDef);
-//
-//		FilterMap filterMap = new FilterMap();
-//		filterMap.setFilterName(TokenFilter.class.getSimpleName());
-//		filterMap.addURLPattern("/*");
-//		ctx.addFilterMap(filterMap);
 		addFilter(ctx, new TokenFilter(),TokenFilter.class);
 		try {
 			List<Filter> filters = PlugsFactory.getPlugsInstanceList(Filter.class);
@@ -149,7 +145,7 @@ public class PluginBootServer {
 	 * 初始化Tomcat
 	 * @param pluginBoot
 	 */
-	public static void initTomcat(PluginBoot pluginBoot) {
+	public static void initTomcat(PluginBoot pluginBoot,Class<?> contextClass) {
 		if (tomcat == null) {
 			synchronized (PluginBootServer.class) {
 				if (tomcat == null) {
@@ -157,16 +153,90 @@ public class PluginBootServer {
 					tomcat.setHostname(pluginBoot.host());
 					tomcat.setPort(pluginBoot.port());
 					tomcat.setBaseDir(pluginBoot.baseDir());
-					String DEFAULT_PROTOCOL = pluginBoot.DEFAULT_PROTOCOL();
-					Connector connector = new Connector(DEFAULT_PROTOCOL);
+					//创建一个基础的连接 一般8080
+					Connector connector = new Connector(pluginBoot.httpProtocol());
+					//是否需要证书
+					tryAddSslConnector(pluginBoot, contextClass, connector);
 					connector.setPort(pluginBoot.port());
 					tomcat.getService().addConnector(connector);
+					addUpgradeProtocols(connector, pluginBoot.upgradeProtocol());
 					StandardServer server = (StandardServer) tomcat.getServer();
 					AprLifecycleListener listener = new AprLifecycleListener();
 					server.addLifecycleListener(listener);
 				}
 			}
 		}
+	}
+
+
+	public static void addUpgradeProtocols(Connector connector, String[] upgradeProtocols) {
+		for(String upgradeProtocol : upgradeProtocols) {
+			try {
+		        Class<?> clazz = Class.forName(upgradeProtocol);
+		        UpgradeProtocol protocol  = (UpgradeProtocol) clazz.getConstructor().newInstance();
+				connector.addUpgradeProtocol(protocol);
+		    } catch (Exception e) {
+		        log.error(e.getMessage(), e);
+		    } 
+		}
+	}
+
+	/**
+	 * 添加SSL的Connector
+	 * @param pluginBoot
+	 * @param contextClass
+	 * @param connector
+	 */
+	public static void tryAddSslConnector(PluginBoot pluginBoot, Class<?> contextClass, Connector connector) {
+		SSLHost sslHost = contextClass .getAnnotation(SSLHost.class);
+		Certificate certificate = contextClass .getAnnotation(Certificate.class);
+		if(certificate != null || sslHost != null) {
+			SSLHostConfig sslHostConfig;
+			if(sslHost != null) {
+				sslHostConfig = new SSLHostConfig();
+				sslHostConfig.setSslProtocol(sslHost.sslProtocol());
+				sslHostConfig.setSslProtocol(sslHost.sslProtocol());
+				if(StringUtil.isNotEmpty(sslHost.certificateKeyStoreFile()))
+					sslHostConfig.setCertificateKeystoreFile(sslHost.certificateKeyStoreFile());
+				if(StringUtil.isNotEmpty(sslHost.certificateKeystorePassword()))
+					sslHostConfig.setCertificateKeystorePassword(sslHost.certificateKeystorePassword());
+			}else {
+				sslHost = getDefaultConfigure(SSLHost.class);
+				sslHostConfig = new SSLHostConfig();
+				sslHostConfig.setSslProtocol(sslHost.sslProtocol());
+			}
+			if(certificate == null) {
+				for(Certificate childCertificate : sslHost.value()) {
+					SSLHostConfigCertificate sslHostConfigCertificate = buildSslCertificate(childCertificate, sslHostConfig);
+					sslHostConfig.addCertificate(sslHostConfigCertificate);
+				}
+			}else {
+				SSLHostConfigCertificate sslHostConfigCertificate = buildSslCertificate(certificate, sslHostConfig);
+				sslHostConfig.addCertificate(sslHostConfigCertificate);
+			}
+			Connector sslConnector = new Connector(HttpProtocol.Http11);
+			sslConnector.setScheme(sslHost.scheme());
+			sslConnector.setSecure(sslHost.secure());
+			sslConnector.setURIEncoding(sslHost.URIEncoding());
+			sslConnector.setProperty("SSLEnabled", "true");
+			sslConnector.setPort(sslHost.port());
+			sslConnector.addSslHostConfig(sslHostConfig);
+			addUpgradeProtocols(sslConnector, sslHost.upgradeProtocol());
+			connector.setRedirectPort(sslHost.port());
+			tomcat.getService().addConnector(sslConnector);
+		}
+	}
+
+
+	public static SSLHostConfigCertificate buildSslCertificate(Certificate certificate, SSLHostConfig sslHostConfig) {
+		SSLHostConfigCertificate sslHostConfigCertificate =  
+				new SSLHostConfigCertificate(sslHostConfig,certificate.type());
+		sslHostConfig.addCertificate(sslHostConfigCertificate);
+		sslHostConfigCertificate.setCertificateFile(certificate.certificateFile());
+		sslHostConfigCertificate.setCertificateChainFile(certificate.certificateChainFile());
+		sslHostConfigCertificate.setCertificateKeyFile(certificate.certificateKeyFile());
+		sslHostConfigCertificate.setCertificateKeystoreType(certificate.certificateKeystoreType());
+		return sslHostConfigCertificate;
 	}
     /**
      * 添加Plugin的扫描上下文
@@ -180,6 +250,7 @@ public class PluginBootServer {
 		} else {
 			PlugsFactory.getInstance().addScanPath(pluginBoot.contextClass());
 		}
+		System.out.println(Arrays.toString(PlugsFactory.getInstance().getScanPath()));
 		PlugsFactory.getInstance().init0();
 	}
 	/**
