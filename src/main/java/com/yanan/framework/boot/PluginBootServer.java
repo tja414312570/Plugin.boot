@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import javax.servlet.Filter;
 import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebInitParam;
 
@@ -43,6 +44,7 @@ public class PluginBootServer {
 	// tomcat 实例
 	private static Tomcat tomcat;
 	static org.slf4j.Logger log = LoggerFactory.getLogger(PluginBootServer.class);
+	private static boolean b = false;
 
 	/**
 	 * 运行服务
@@ -61,18 +63,26 @@ public class PluginBootServer {
 		//设置基本路径
 		setHostAppBase(pluginBoot);
 		//配置ServletContext的监听
-		org.apache.catalina.Context ctx = tomcat.addContext("/", "webapp");// 网络访问路径
+		WebContext webContext = configure.getAnnotation(WebContext.class);
+		if(webContext == null) 
+			webContext = getDefaultConfigure(WebContext.class);
+		org.apache.catalina.Context ctx = tomcat.addContext(webContext.contextPath(), webContext.docBase());// 网络访问路径
 		ctx.setInstanceManager(new SimpleInstanceManager());
 		ctx.addLifecycleListener(new ContextConfig() {
 			@Override
 			public void lifecycleEvent(LifecycleEvent event) {
 				StandardContext sc = (StandardContext) event.getSource();
 				this.context = sc;
-				if (event.getLifecycle().getState().equals(LifecycleState.STARTING_PREP)) {
+				if (event.getLifecycle().getState().equals(LifecycleState.STARTING_PREP) && !b) {
 					ServletContextEvent sce = new ServletContextEvent(sc.getServletContext());
 //					new PluginAppincationContext().contextInitialized(sce);
 					new ServletContextInit().contextInitialized(sce);
 					new TokenContextInit().contextInitialized(sce);
+					List<ServletContextListener> lists = PlugsFactory.getPlugsInstanceList(ServletContextListener.class);
+					for(ServletContextListener listener : lists) {
+						listener.contextInitialized(sce);
+					}
+					b = true;
 				}
 				if (event.getLifecycle().getState().equals(LifecycleState.STARTED)) {
 				}
@@ -244,13 +254,12 @@ public class PluginBootServer {
      * @param pluginBoot
      */
 	public static void addPluginContext(Class<?> configure, PluginBoot pluginBoot) {
-		if (pluginBoot == null || pluginBoot.contextClass().equals(PluginBoot.class)) {
+		if (pluginBoot == null || pluginBoot.contextClass().length == 0) {
 			// 将class文件上下文添加到Plug中
 			PlugsFactory.getInstance().addScanPath(configure);
 		} else {
 			PlugsFactory.getInstance().addScanPath(pluginBoot.contextClass());
 		}
-		System.out.println(Arrays.toString(PlugsFactory.getInstance().getScanPath()));
 		PlugsFactory.getInstance().init0();
 	}
 	/**
