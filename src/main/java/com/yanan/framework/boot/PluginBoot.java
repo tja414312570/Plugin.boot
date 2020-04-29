@@ -23,7 +23,7 @@ public @interface PluginBoot {
 	 * 上下文类
 	 * @return
 	 */
-	Class<?> contextClass() default PluginBoot.class;
+	Class<?>[] contextClass() default {};
 	/**
 	 * 默认使用http协议
 	 * @return
@@ -49,6 +49,5 @@ public @interface PluginBoot {
 	 * @return
 	 */
 	String[] upgradeProtocol() default {};
-	
 	
 }

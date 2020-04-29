@@ -33,6 +33,7 @@ import com.YaNan.frame.servlets.ServletContextInit;
 import com.YaNan.frame.servlets.session.TokenContextInit;
 import com.YaNan.frame.servlets.session.filter.TokenFilter;
 import com.YaNan.frame.utils.StringUtil;
+import com.YaNan.frame.utils.resource.ResourceManager;
 
 /**
  * Plugin 引导服务
@@ -64,9 +65,16 @@ public class PluginBootServer {
 		setHostAppBase(pluginBoot);
 		//配置ServletContext的监听
 		WebContext webContext = configure.getAnnotation(WebContext.class);
-		if(webContext == null) 
+		String docBase = "";
+		if(webContext == null) {
 			webContext = getDefaultConfigure(WebContext.class);
-		org.apache.catalina.Context ctx = tomcat.addContext(webContext.contextPath(), webContext.docBase());// 网络访问路径
+			if(new File(pluginBoot.baseDir(),webContext.docBase()).exists())
+				docBase = webContext.docBase();
+		}else {
+			docBase = webContext.docBase();
+		}
+		log.info("Web Application Context Info, Context Path:"+webContext.contextPath()+", Doc Base:"+docBase);
+		org.apache.catalina.Context ctx = tomcat.addContext(webContext.contextPath(), docBase);// 网络访问路径
 		ctx.setInstanceManager(new SimpleInstanceManager());
 		ctx.addLifecycleListener(new ContextConfig() {
 			@Override
@@ -110,15 +118,12 @@ public class PluginBootServer {
 	 */
 	public static void addFilter(org.apache.catalina.Context ctx, Class<?> configure) {
 		addFilter(ctx, new TokenFilter(),TokenFilter.class);
-		try {
+		if(PlugsFactory.getPlug(Filter.class) != null) {
 			List<Filter> filters = PlugsFactory.getPlugsInstanceList(Filter.class);
 			for(Filter filter : filters) {
 				addFilter(ctx, filter,PlugsFactory.getPlugsHandler(filter).getRegisterDescription().getRegisterClass());
 			}
-		}catch(Exception e) {
-			
 		}
-		
 	}
 	/**
 	 * WebContext时添加过滤器
@@ -163,6 +168,8 @@ public class PluginBootServer {
 					tomcat.setHostname(pluginBoot.host());
 					tomcat.setPort(pluginBoot.port());
 					tomcat.setBaseDir(pluginBoot.baseDir());
+					if(System.getProperty("org.apache.catalina.startup.EXIT_ON_INIT_FAILURE") == null)
+						System.setProperty("org.apache.catalina.startup.EXIT_ON_INIT_FAILURE", true+"");
 					//创建一个基础的连接 一般8080
 					Connector connector = new Connector(pluginBoot.httpProtocol());
 					//是否需要证书
@@ -185,6 +192,7 @@ public class PluginBootServer {
 		        Class<?> clazz = Class.forName(upgradeProtocol);
 		        UpgradeProtocol protocol  = (UpgradeProtocol) clazz.getConstructor().newInstance();
 				connector.addUpgradeProtocol(protocol);
+				log.info("Upgrade Protocol:"+protocol.getClass().getName());
 		    } catch (Exception e) {
 		        log.error(e.getMessage(), e);
 		    } 
@@ -201,6 +209,9 @@ public class PluginBootServer {
 		SSLHost sslHost = contextClass .getAnnotation(SSLHost.class);
 		Certificate certificate = contextClass .getAnnotation(Certificate.class);
 		if(certificate != null || sslHost != null) {
+			log.info("Try Add SSl Connector !");
+			log.info("SSL host Info:"+sslHost);
+			log.info("Certificate Info:"+certificate);
 			SSLHostConfig sslHostConfig;
 			if(sslHost != null) {
 				sslHostConfig = new SSLHostConfig();
@@ -257,8 +268,10 @@ public class PluginBootServer {
 		if (pluginBoot == null || pluginBoot.contextClass().length == 0) {
 			// 将class文件上下文添加到Plug中
 			PlugsFactory.getInstance().addScanPath(configure);
+			log.info("Plugin Application Context Path "+Arrays.toString(ResourceManager.getClassPath(configure)));
 		} else {
 			PlugsFactory.getInstance().addScanPath(pluginBoot.contextClass());
+			log.info("Plugin Application Context Path "+Arrays.toString(ResourceManager.getClassPath(pluginBoot.contextClass())));
 		}
 		PlugsFactory.getInstance().init0();
 	}
@@ -280,15 +293,19 @@ public class PluginBootServer {
 			if(webAppGroups.value().length != 0 ) {
 				for(WebApp webApp : webAppGroups.value()) {
 					tomcat.addWebapp(webApp.contextPath(), webApp.docBase());
+					log.info("Web Application, context path:"+webApp.contextPath()+", doc base:"+webApp.docBase());
 				}
 			}else {
 				WebApp webApp = getDefaultConfigure(WebApp.class);
 				tomcat.addWebapp(webApp.contextPath(), webApp.docBase());
+				log.info("Web Application, context path:"+webApp.contextPath()+", doc base:"+webApp.docBase());
 			}
 		}else {
 			WebApp webApp = configure.getAnnotation(WebApp.class);
-			if(webApp != null)
+			if(webApp != null) {
 				tomcat.addWebapp(webApp.contextPath(), webApp.docBase());
+				log.info("Web Application, context path:"+webApp.contextPath()+", doc base:"+webApp.docBase());
+			}
 		}
 	}
 	/**
