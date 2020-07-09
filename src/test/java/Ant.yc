@@ -1,0 +1,29 @@
+Ant:{ 
+	##	基础配置
+	bufferType:"heap",	## 内存类型  heap 或 direct
+	timeout:30000,  ## 超时
+	process:10,	##处理消息时的线程数
+	checkTime:1000,	##每次消息检查时间间隔 毫秒
+	bufferSize:1024	,	## buffer大小
+	bufferMaxSize:2048 		##最大buffer大小
+}
+nacos:{
+	host:"127.0.0.1",
+	port:"8848",
+	group:"queue",
+	name:"queue",
+	namespace:"",
+}
+plugins:[
+	{
+		id:discovery,
+		class:com.YaNan.frame.ant.nacos.AntNacosRuntime,
+		args:"classpath:Ant.yc"
+	},{
+		id:antRuntime,
+		class:com.YaNan.frame.ant.AntFactory,
+		method:build,
+		args:"classpath:Ant.yc",
+		init:start
+	}
+]

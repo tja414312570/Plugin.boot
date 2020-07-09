@@ -1,4 +1,4 @@
-package com.yanan.framework.boot;
+package com.YaNan.framework.boot.web;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

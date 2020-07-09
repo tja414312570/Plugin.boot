@@ -1,39 +1,22 @@
-package com.yanan.framework.boot;
+package com.YaNan.framework.boot;
 
-import java.io.File;
-import java.lang.annotation.Annotation;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.Arrays;
-import java.util.List;
-import javax.servlet.Filter;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-import javax.servlet.annotation.WebFilter;
-import javax.servlet.annotation.WebInitParam;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.apache.catalina.LifecycleEvent;
-import org.apache.catalina.LifecycleException;
-import org.apache.catalina.LifecycleState;
-import org.apache.catalina.connector.Connector;
-import org.apache.catalina.core.AprLifecycleListener;
-import org.apache.catalina.core.StandardContext;
-import org.apache.catalina.core.StandardServer;
-import org.apache.catalina.startup.ContextConfig;
-import org.apache.catalina.startup.Tomcat;
-import org.apache.coyote.UpgradeProtocol;
-import org.apache.tomcat.SimpleInstanceManager;
-import org.apache.tomcat.util.descriptor.web.FilterDef;
-import org.apache.tomcat.util.descriptor.web.FilterMap;
-import org.apache.tomcat.util.net.SSLHostConfig;
-import org.apache.tomcat.util.net.SSLHostConfigCertificate;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.YaNan.frame.plugin.PlugsFactory;
-import com.YaNan.frame.servlets.CoreDispatcher;
-import com.YaNan.frame.servlets.ServletContextInit;
-import com.YaNan.frame.servlets.session.TokenContextInit;
-import com.YaNan.frame.servlets.session.filter.TokenFilter;
 import com.YaNan.frame.utils.StringUtil;
+import com.YaNan.frame.utils.resource.AbstractResourceEntry;
 import com.YaNan.frame.utils.resource.ResourceManager;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
 /**
  * Plugin 引导服务
@@ -42,224 +25,152 @@ import com.YaNan.frame.utils.resource.ResourceManager;
  *
  */
 public class PluginBootServer {
-	// tomcat 实例
-	private static Tomcat tomcat;
-	static org.slf4j.Logger log = LoggerFactory.getLogger(PluginBootServer.class);
-	private static boolean b = false;
-
+	static Logger log = LoggerFactory.getLogger(PluginBootServer.class);
 	/**
 	 * 运行服务
 	 * 
 	 * @param configure
 	 * @throws LifecycleException
 	 */
-	public static void run(Class<?> configure) throws LifecycleException {
+	public static void run(String... args) {
 		log.info("Plugin Boot Snapshot Version!");
-		PluginBoot pluginBoot = configure.getAnnotation(PluginBoot.class);
-		if (pluginBoot == null)
-			pluginBoot = getDefaultConfigure(PluginBoot.class);
-		addPluginContext(configure, pluginBoot);
-		//初始化Tomcat
-		initTomcat(pluginBoot,configure);
-		//设置基本路径
-		setHostAppBase(pluginBoot);
-		//配置ServletContext的监听
-		WebContext webContext = configure.getAnnotation(WebContext.class);
-		String docBase = "";
-		if(webContext == null) {
-			webContext = getDefaultConfigure(WebContext.class);
-			if(new File(pluginBoot.baseDir(),webContext.docBase()).exists())
-				docBase = webContext.docBase();
-		}else {
-			docBase = webContext.docBase();
-		}
-		log.info("Web Application Context Info, Context Path:"+webContext.contextPath()+", Doc Base:"+docBase);
-		org.apache.catalina.Context ctx = tomcat.addContext(webContext.contextPath(), docBase);// 网络访问路径
-		ctx.setInstanceManager(new SimpleInstanceManager());
-		ctx.addLifecycleListener(new ContextConfig() {
-			@Override
-			public void lifecycleEvent(LifecycleEvent event) {
-				StandardContext sc = (StandardContext) event.getSource();
-				this.context = sc;
-				if (event.getLifecycle().getState().equals(LifecycleState.STARTING_PREP) && !b) {
-					ServletContextEvent sce = new ServletContextEvent(sc.getServletContext());
-//					new PluginAppincationContext().contextInitialized(sce);
-					new ServletContextInit().contextInitialized(sce);
-					new TokenContextInit().contextInitialized(sce);
-					List<ServletContextListener> lists = PlugsFactory.getPlugsInstanceList(ServletContextListener.class);
-					for(ServletContextListener listener : lists) {
-						listener.contextInitialized(sce);
-					}
-					b = true;
-				}
-				if (event.getLifecycle().getState().equals(LifecycleState.STARTED)) {
-				}
-//				super.lifecycleEvent(event);
-			}
-		});
-		//添加核心Servlet
-		Tomcat.addServlet(ctx, "coreServlet", new CoreDispatcher()); 
-		ctx.addServletMappingDecoded("/*", "coreServlet");
-		//添加过滤器
-		addFilter(ctx,configure);
-		//增加WebApp
-		addWebApp(configure);
-		tomcat.init();
-		tomcat.start();
-		log.info("Plugin Boot Started Success!");
-		tomcat.getServer().await();
+		long startTime = System.currentTimeMillis();
+		//获取主类路径
+		String mainClassPath = ResourceManager.classPath();
+		log.info("Application main class path : "+mainClassPath);
+		//获取主类
+		Class<?> mainClass = deduceMainClass();
+		log.info("Application main class : "+mainClassPath);
+		//获取环境
+		Environment environment = Environment.getEnviroment();
+		//设置主类路径，主类到环境
+		environment.setVariable(Environment.MAIN_CLASS, mainClass);
+		environment.setVariable(Environment.MAIN_CLASS_PATH, mainClassPath);
+		//设置一个默认的全局配置
+		Map<String,String> globalConfigureMap = new HashMap<String,String>();
+		globalConfigureMap.put("-boot-server", "plugin-boot");
+		globalConfigureMap.put("-boot-server-version", "0.0.1-snapshot");
+		Config globalConfig = ConfigFactory.parseMap(globalConfigureMap);
+		environment.mergeConfig(globalConfig);
+		System.out.println(globalConfig);
+		//解析参数
+		resolverBootArguments(args,environment,mainClass);
+		//获取基本配置
+		PluginBoot pluginBoot = mainClass.getAnnotation(PluginBoot.class);
+		addPluginContext(mainClass, pluginBoot);
+		//获取其它配置注释
+		EnvironmentBoot envoronmentBoot = dedudeEnvironment(environment);
+		//加载组件工厂
+//		PlugsFactory facaoty = PlugsFactory.getInstance();
+		//加载配置
+		envoronmentBoot.start(environment);
+		//初始化环境
+		
+		//引导启动
+		long times = System.currentTimeMillis()-startTime;
+		log.info("Application started at "+times+"[ms]");
+		
 	}
-
-	
-	/**
-	 * WebContext添加过滤器
-	 * @param ctx
-	 * @param configure
-	 */
-	public static void addFilter(org.apache.catalina.Context ctx, Class<?> configure) {
-		addFilter(ctx, new TokenFilter(),TokenFilter.class);
-		if(PlugsFactory.getPlug(Filter.class) != null) {
-			List<Filter> filters = PlugsFactory.getPlugsInstanceList(Filter.class);
-			for(Filter filter : filters) {
-				addFilter(ctx, filter,PlugsFactory.getPlugsHandler(filter).getRegisterDescription().getRegisterClass());
-			}
-		}
-	}
-	/**
-	 * WebContext时添加过滤器
-	 * @param ctx
-	 * @param filter
-	 * @param filterClass
-	 */
-	public static void addFilter(org.apache.catalina.Context ctx, Filter filter, Class<?> filterClass) {
-		WebFilter webFilter = filterClass.getAnnotation(WebFilter.class);
-		if(webFilter != null ) {
-			FilterDef filterDef = new FilterDef();
-			filterDef.setFilterName(webFilter.filterName());
-//					filterDef.setFilterClass(filter.getClass().getName());
-			filterDef.setFilter(filter);
-			filterDef.setSmallIcon(webFilter.smallIcon());
-			filterDef.setLargeIcon(webFilter.largeIcon());
-			filterDef.setDescription(webFilter.description());
-			filterDef.setDisplayName(webFilter.displayName());
-			filterDef.setAsyncSupported(webFilter.asyncSupported()+"");
-			WebInitParam webInitParam = filterClass.getAnnotation(WebInitParam.class);
-			if(webInitParam != null)
-				filterDef.addInitParameter(webInitParam.name(), webInitParam.value());
-			ctx.addFilterDef(filterDef);
-			String[] urlPatterns = webFilter.urlPatterns();
-			for(String urlPattern : urlPatterns) {
-				FilterMap filterMap = new FilterMap();
-				filterMap.setFilterName(webFilter.filterName());
-				filterMap.addURLPattern(urlPattern);
-				ctx.addFilterMap(filterMap);
-			}
-		}
-	}
-	/**
-	 * 初始化Tomcat
-	 * @param pluginBoot
-	 */
-	public static void initTomcat(PluginBoot pluginBoot,Class<?> contextClass) {
-		if (tomcat == null) {
-			synchronized (PluginBootServer.class) {
-				if (tomcat == null) {
-					tomcat = new Tomcat();
-					tomcat.setHostname(pluginBoot.host());
-					tomcat.setPort(pluginBoot.port());
-					tomcat.setBaseDir(pluginBoot.baseDir());
-					if(System.getProperty("org.apache.catalina.startup.EXIT_ON_INIT_FAILURE") == null)
-						System.setProperty("org.apache.catalina.startup.EXIT_ON_INIT_FAILURE", true+"");
-					//创建一个基础的连接 一般8080
-					Connector connector = new Connector(pluginBoot.httpProtocol());
-					//是否需要证书
-					tryAddSslConnector(pluginBoot, contextClass, connector);
-					connector.setPort(pluginBoot.port());
-					tomcat.getService().addConnector(connector);
-					addUpgradeProtocols(connector, pluginBoot.upgradeProtocol());
-					StandardServer server = (StandardServer) tomcat.getServer();
-					AprLifecycleListener listener = new AprLifecycleListener();
-					server.addLifecycleListener(listener);
-				}
-			}
-		}
-	}
-
-
-	public static void addUpgradeProtocols(Connector connector, String[] upgradeProtocols) {
-		for(String upgradeProtocol : upgradeProtocols) {
+	//获取环境引导
+	private static EnvironmentBoot dedudeEnvironment(Environment environment) {
+		EnvironmentBoot enviromentBoot = null;
+		Class<?> enviromentBootClass = null;
+		//从参数获取引导
+		String environmentBootArg = environment.getVariable("-environment-boot");
+		if(environmentBootArg != null) {
 			try {
-		        Class<?> clazz = Class.forName(upgradeProtocol);
-		        UpgradeProtocol protocol  = (UpgradeProtocol) clazz.getConstructor().newInstance();
-				connector.addUpgradeProtocol(protocol);
-				log.info("Upgrade Protocol:"+protocol.getClass().getName());
-		    } catch (Exception e) {
-		        log.error(e.getMessage(), e);
-		    } 
+				enviromentBootClass = Class.forName(environmentBootArg);
+			} catch (ClassNotFoundException e) {
+				throw new PluginBootException("failed to load environment boot class:"+environmentBootArg,e);
+			}
+		}else {
+			try {
+				enviromentBootClass = Class.forName("com.YaNan.framework.boot.web.WebEnvironmentBoot");
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+				enviromentBootClass = StandEnvironmentBoot.class;
+			}
+		}
+		log.info("Plugin enviroment boot:"+enviromentBootClass.getName());
+		try {
+			enviromentBoot = (EnvironmentBoot) enviromentBootClass.newInstance();
+		} catch (Exception e) {
+			throw new PluginBootException("failed to instance environment boot class:"+enviromentBootClass,e);
+		}
+		return enviromentBoot;
+	}
+	//将引导参数解析到环境中
+	private static void resolverBootArguments(String[] args, Environment environment,Class<?> mainClass) {
+		if(mainClass != null) {
+			BootArgs[] bootArgs = mainClass.getAnnotationsByType(BootArgs.class);
+			for(BootArgs bootArg : bootArgs) {
+				environment.setVariable(bootArg.name(),bootArg.value());
+			}
+		}
+		for(String arg : args) {
+			String[] argArray = arg.split("=");
+			environment.setVariable(argArray[0],argArray.length>1? argArray[1]:null);
+		}
+		AbstractResourceEntry resource;
+		String disableConfig = environment.getVariable("-boot-disabled");
+		if(StringUtil.isNotBlank(disableConfig)) {
+			environment.removeVariable(disableConfig.split(","));
+		}
+		String bootYc = environment.getVariable("-boot-configure");
+		if(!StringUtil.isEmpty(bootYc)) {
+			resource = ResourceManager.getResource(bootYc);
+			if(resource == null)
+				throw new PluginBootException("Could not found config resource :"+bootYc);
+		}else {
+			resource = ResourceManager.getResource("classpath:boot.yc");
+		}
+		System.out.println(resource);
+		if(resource != null) {
+			InputStream inputStream = null;
+			Reader reader = null;
+			try {
+				inputStream = resource.getInputStream();
+				reader = new InputStreamReader(resource.getInputStream());
+				Config config = ConfigFactory.parseReader(reader);
+				environment.mergeConfig(config);
+				config.entrySet().forEach(entry->{
+					environment.setVariable(entry.getKey(), entry.getValue().unwrapped());
+				});;
+			}finally {
+				if(reader != null)
+					try {
+						reader.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				if(inputStream != null)
+					try {
+						inputStream.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+			}
+			disableConfig = environment.getVariable("-boot-disabled");
+			if(StringUtil.isNotBlank(disableConfig)) {
+				environment.removeVariable(disableConfig.split(","));
+			}
 		}
 	}
-
-	/**
-	 * 添加SSL的Connector
-	 * @param pluginBoot
-	 * @param contextClass
-	 * @param connector
-	 */
-	public static void tryAddSslConnector(PluginBoot pluginBoot, Class<?> contextClass, Connector connector) {
-		SSLHost sslHost = contextClass .getAnnotation(SSLHost.class);
-		Certificate certificate = contextClass .getAnnotation(Certificate.class);
-		if(certificate != null || sslHost != null) {
-			log.info("Try Add SSl Connector !");
-			log.info("SSL host Info:"+sslHost);
-			log.info("Certificate Info:"+certificate);
-			SSLHostConfig sslHostConfig;
-			if(sslHost != null) {
-				sslHostConfig = new SSLHostConfig();
-				sslHostConfig.setSslProtocol(sslHost.sslProtocol());
-				sslHostConfig.setSslProtocol(sslHost.sslProtocol());
-				if(StringUtil.isNotEmpty(sslHost.certificateKeyStoreFile()))
-					sslHostConfig.setCertificateKeystoreFile(sslHost.certificateKeyStoreFile());
-				if(StringUtil.isNotEmpty(sslHost.certificateKeystorePassword()))
-					sslHostConfig.setCertificateKeystorePassword(sslHost.certificateKeystorePassword());
-			}else {
-				sslHost = getDefaultConfigure(SSLHost.class);
-				sslHostConfig = new SSLHostConfig();
-				sslHostConfig.setSslProtocol(sslHost.sslProtocol());
-			}
-			if(certificate == null) {
-				for(Certificate childCertificate : sslHost.value()) {
-					SSLHostConfigCertificate sslHostConfigCertificate = buildSslCertificate(childCertificate, sslHostConfig);
-					sslHostConfig.addCertificate(sslHostConfigCertificate);
+	private static Class<?> deduceMainClass() {
+		StackTraceElement[] stacks = new RuntimeException().getStackTrace();
+		Class<?> mainClass = null;
+		for(StackTraceElement stack : stacks) {
+			if(StringUtil.equals(stack.getMethodName(), "main")) {
+				try {
+					mainClass = Class.forName(stack.getClassName());
+				} catch (ClassNotFoundException e) {
+					e.printStackTrace();
 				}
-			}else {
-				SSLHostConfigCertificate sslHostConfigCertificate = buildSslCertificate(certificate, sslHostConfig);
-				sslHostConfig.addCertificate(sslHostConfigCertificate);
 			}
-			Connector sslConnector = new Connector(HttpProtocol.Http11);
-			sslConnector.setScheme(sslHost.scheme());
-			sslConnector.setSecure(sslHost.secure());
-			sslConnector.setURIEncoding(sslHost.URIEncoding());
-			sslConnector.setProperty("SSLEnabled", "true");
-			sslConnector.setPort(sslHost.port());
-			sslConnector.addSslHostConfig(sslHostConfig);
-			addUpgradeProtocols(sslConnector, sslHost.upgradeProtocol());
-			connector.setRedirectPort(sslHost.port());
-			tomcat.getService().addConnector(sslConnector);
 		}
+		return mainClass;
 	}
-
-
-	public static SSLHostConfigCertificate buildSslCertificate(Certificate certificate, SSLHostConfig sslHostConfig) {
-		SSLHostConfigCertificate sslHostConfigCertificate =  
-				new SSLHostConfigCertificate(sslHostConfig,certificate.type());
-		sslHostConfig.addCertificate(sslHostConfigCertificate);
-		sslHostConfigCertificate.setCertificateFile(certificate.certificateFile());
-		sslHostConfigCertificate.setCertificateChainFile(certificate.certificateChainFile());
-		sslHostConfigCertificate.setCertificateKeyFile(certificate.certificateKeyFile());
-		sslHostConfigCertificate.setCertificateKeystoreType(certificate.certificateKeystoreType());
-		return sslHostConfigCertificate;
-	}
-    /**
+	/**
      * 添加Plugin的扫描上下文
      * @param configure
      * @param pluginBoot
@@ -273,55 +184,6 @@ public class PluginBootServer {
 			PlugsFactory.getInstance().addScanPath(pluginBoot.contextClass());
 			log.info("Plugin Application Context Path "+Arrays.toString(ResourceManager.getClassPath(pluginBoot.contextClass())));
 		}
-		PlugsFactory.getInstance().init0();
-	}
-	/**
-	 * 设置App的基本路径
-	 * @param pluginBoot
-	 */
-	public static void setHostAppBase(PluginBoot pluginBoot) {
-		String userDir = System.getProperty(pluginBoot.appBase()) + File.separator;
-		tomcat.getHost().setAppBase(userDir);
-	}
-	/**
-	 * 添加WebApp
-	 * @param configure
-	 */
-	public static void addWebApp(Class<?> configure) {
-		WebAppGroups webAppGroups = configure.getAnnotation(WebAppGroups.class);
-		if(webAppGroups != null && webAppGroups.enable()) {
-			if(webAppGroups.value().length != 0 ) {
-				for(WebApp webApp : webAppGroups.value()) {
-					tomcat.addWebapp(webApp.contextPath(), webApp.docBase());
-					log.info("Web Application, context path:"+webApp.contextPath()+", doc base:"+webApp.docBase());
-				}
-			}else {
-				WebApp webApp = getDefaultConfigure(WebApp.class);
-				tomcat.addWebapp(webApp.contextPath(), webApp.docBase());
-				log.info("Web Application, context path:"+webApp.contextPath()+", doc base:"+webApp.docBase());
-			}
-		}else {
-			WebApp webApp = configure.getAnnotation(WebApp.class);
-			if(webApp != null) {
-				tomcat.addWebapp(webApp.contextPath(), webApp.docBase());
-				log.info("Web Application, context path:"+webApp.contextPath()+", doc base:"+webApp.docBase());
-			}
-		}
-	}
-	/**
-	 * 获取默认配置
-	 * @param annotationClass
-	 * @return
-	 */
-	private static <T extends Annotation> T getDefaultConfigure(Class<T> annotationClass) {
-		return DefaultBootConfigure.class.getAnnotation(annotationClass);
-	}
-	/**
-	 * 停止运行
-	 * @throws LifecycleException
-	 */
-	public static void stop() throws LifecycleException {
-		if (tomcat != null)
-			tomcat.stop();
+		PlugsFactory.init("classpath:boot.yc");
 	}
 }

@@ -1,8 +1,8 @@
-package com.yanan.framework.boot;
+package com.YaNan.framework.boot.web;
 
 @WebContext(contextPath = "/", docBase = "src/main/webapp")
 @WebApp(contextPath = "", docBase = "webapp")
-@PluginBoot
+@WebPluginBoot
 public class DefaultBootConfigure {
 
 }

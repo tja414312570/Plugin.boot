@@ -1,4 +1,4 @@
-package com.yanan.framework.boot;
+package com.YaNan.framework.boot;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -8,22 +8,23 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * 定义一个WebContext
+ * 引导参数设置
  * @author yanan
  *
  */
 @Retention(RUNTIME)
 @Target({ TYPE })
-@Repeatable(WebContextGroups.class)
-public @interface WebContext {
+@Repeatable(BootArgsGroups.class)
+public @interface BootArgs {
 	/**
-	 * WebApp请求上下文
+	 * 引导参数名
 	 * @return
 	 */
-	String contextPath();
+	String name();
 	/**
-	 * WebApp的资源路径
+	 * 引导参数值
 	 * @return
 	 */
-	String docBase();
+	String value();
+
 }

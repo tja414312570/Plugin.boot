@@ -1,4 +1,4 @@
-package com.yanan.framework.boot;
+package com.YaNan.framework.boot.web;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -8,14 +8,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * 定义一个WebApp
+ * 定义一个WebContext
  * @author yanan
  *
  */
 @Retention(RUNTIME)
 @Target({ TYPE })
-@Repeatable(WebAppGroups.class)
-public @interface WebApp {
+@Repeatable(WebContextGroups.class)
+public @interface WebContext {
 	/**
 	 * WebApp请求上下文
 	 * @return
