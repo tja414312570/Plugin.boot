@@ -43,8 +43,6 @@ public class PluginBootServerTest2 {
 [2020-07-09 19:02:34] [ INFO] [PluginBootServer:36] : Plugin Boot Snapshot Version!
 [2020-07-09 19:02:34] [ INFO] [PluginBootServer:40] : Application main class path : /Volumes/GENERAL/git/plugin.boot/target/classes/
 [2020-07-09 19:02:34] [ INFO] [PluginBootServer:43] : Application main class : class plugin.boot.PluginBootServerTest2
-Config(SimpleConfigObject({"-boot-server":"plugin-boot","-boot-server-version":"0.0.1-snapshot"}))
-AbstractResourceEntry [path=/Volumes/GENERAL/git/plugin.boot/target/classes/boot.yc, name=boot.yc, origin=/Volumes/GENERAL/git/plugin.boot/target/classes/boot.yc, type=FILE, file=/Volumes/GENERAL/git/plugin.boot/target/classes/boot.yc, jarEntry=null]
 [2020-07-09 19:02:36] [ INFO] [PluginBootServer:182] : Plugin Application Context Path [/Volumes/GENERAL/git/plugin.boot/target/classes/]
 [2020-07-09 19:02:36] [ INFO] [PluginBootServer:94] : Plugin enviroment boot:com.YaNan.framework.boot.StandEnvironmentBoot
 [2020-07-09 19:02:39] [ INFO] [StandEnvironmentBoot:60] : loaded properties from /Volumes/GENERAL/git/plugin.boot/target/classes/jdb.properties
