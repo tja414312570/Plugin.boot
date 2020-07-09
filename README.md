@@ -4,6 +4,7 @@
 * WebApp 以原生WebApp的启动方式启动Web应用，支持Web.xml,原生Servlet3.0开发规范，支持Spring等
 * WebContext 以基于Plugin.mvc的模式启动Web应用，不支持Web.xml等，原生Servlet3.0的注解开发方式的Filter、Servlet等需要添加@Register注册为Plugin的Bean，启动更快，支持静态资源，JSP
 # 20200709
+* 设计理念：不只是简单，更要明了
 * 独立基础引导服务PluginBootService,用于初始化引导参数，boot级别的配置
 * 抽象环境引导（EnvironmentBoot），将环境具体化，目前默认提供标准环境（StandEnvironmentBoot）和基于Tomcat的Web环境（WebEnvironmentBoot）
 * 优化引导流程--》将组件加载逻辑等进行优化处理
