@@ -39,3 +39,31 @@ public class PluginBootServerTest2 {
 	}
 }
 ```
+```java
+[2020-07-09 19:02:34] [ INFO] [PluginBootServer:36] : Plugin Boot Snapshot Version!
+[2020-07-09 19:02:34] [ INFO] [PluginBootServer:40] : Application main class path : /Volumes/GENERAL/git/plugin.boot/target/classes/
+[2020-07-09 19:02:34] [ INFO] [PluginBootServer:43] : Application main class : class plugin.boot.PluginBootServerTest2
+Config(SimpleConfigObject({"-boot-server":"plugin-boot","-boot-server-version":"0.0.1-snapshot"}))
+AbstractResourceEntry [path=/Volumes/GENERAL/git/plugin.boot/target/classes/boot.yc, name=boot.yc, origin=/Volumes/GENERAL/git/plugin.boot/target/classes/boot.yc, type=FILE, file=/Volumes/GENERAL/git/plugin.boot/target/classes/boot.yc, jarEntry=null]
+[2020-07-09 19:02:36] [ INFO] [PluginBootServer:182] : Plugin Application Context Path [/Volumes/GENERAL/git/plugin.boot/target/classes/]
+[2020-07-09 19:02:36] [ INFO] [PluginBootServer:94] : Plugin enviroment boot:com.YaNan.framework.boot.StandEnvironmentBoot
+[2020-07-09 19:02:39] [ INFO] [StandEnvironmentBoot:60] : loaded properties from /Volumes/GENERAL/git/plugin.boot/target/classes/jdb.properties
+[2020-07-09 19:02:39] [ INFO] [StandEnvironmentBoot:60] : loaded properties from /Volumes/GENERAL/git/plugin.boot/target/classes/log4j.properties
+[2020-07-09 19:02:39] [DEBUG] [StandEnvironmentBoot:98] : environment properties loaded at [2652 ms]
+[2020-07-09 19:02:39] [ INFO] [StandEnvironmentBoot:79] : loaded plugin from /Volumes/GENERAL/git/plugin.boot/target/classes/plugin.yc
+[2020-07-09 19:02:39] [ INFO] [StandEnvironmentBoot:79] : loaded plugin from /Volumes/GENERAL/git/plugin.boot/target/classes/boot.jdb.yc
+[2020-07-09 19:02:40] [DEBUG] [DefaultDataSource:87] : init datasource [testJdb]
+[2020-07-09 19:02:40] [DEBUG] [DefaultDataSource:94] : DefaultDataSource 
+。。。
+[2020-07-09 19:02:42] [DEBUG] [JDBContext:155] : build SELECT wrapper fragment , wrapper id : "testSql.query" ,ref : false
+[2020-07-09 19:02:42] [DEBUG] [JDBContext:155] : build SELECT wrapper fragment , wrapper id : "testSql.query5" ,ref : false
+[2020-07-09 19:02:42] [DEBUG] [JDBContext:155] : build SELECT wrapper fragment , wrapper id : "testSql.query1" ,ref : false
+[2020-07-09 19:02:42] [DEBUG] [JDBContext:155] : build SELECT wrapper fragment , wrapper id : "testSql.queryCount" ,ref : false
+[2020-07-09 19:02:42] [DEBUG] [JDBContext:155] : build INSERT wrapper fragment , wrapper id : "com.YaNan.billing.service.user.UserService.insertUser" ,ref : false
+[2020-07-09 19:02:42] [DEBUG] [MapperInterfaceProxyBuilder:47] : prepared interface class com.YaNan.billing.service.billing.BillingService
+[2020-07-09 19:02:42] [DEBUG] [MapperInterfaceProxyBuilder:47] : prepared interface class com.YaNan.billing.service.user.UserService
+[2020-07-09 19:02:42] [ INFO] [StandEnvironmentBoot:79] : loaded plugin from /Volumes/GENERAL/git/plugin.boot/target/classes/boot.mvc.yc
+[2020-07-09 19:02:42] [DEBUG] [StandEnvironmentBoot:101] : environment model loaded at [2772 ms]
+[2020-07-09 19:02:42] [ INFO] [PluginBootServer:71] : Application started at 7649[ms]
+
+```
