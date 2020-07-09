@@ -22,6 +22,50 @@
 * 多WebContext支持
 * 优化其它组件以适应此引导中的开发方式
 * 优化默认配置、优化架构和性能
+# 配置案例
+```java
+====>boot.yc
+##基础引导参数
+#-environment-boot:环境引导类，默认通过依赖判断为StandEnvironmentBoot或则WebEnvironmentBoot
+#-environment-scan:环境扫描包位置，支持classpath
+#-boot-configure:引导配置地址，支持classpath
+#-boot-disabled:禁用配置，多个用,分开
+#环境启动前加载的属性，支持ant路径
+properties:[
+	"*.properties"
+]
+#模块配置，支持ant路径
+includes:[
+	"plugin.yc",
+	"boot.jdb.yc",
+	"boot.mvc.yc",
+#	"Ant.yc" 此配置不采用
+]
+
+====>plugin.jdb.yc
+plugins:[
+	{
+		id:dataSource,#标示为bean
+		class:com.YaNan.frame.jdb.datasource.DefaultDataSource,#bean 类
+		init:init #初始化后调用init方法
+	},
+	{
+		id:jdbContext,
+		class:com.YaNan.frame.jdb.JDBContext,
+		args.ref:dataSource, #在构造器中传入id为xxx的bean的参数
+		init:init
+	},{
+		id:sqlSession,
+		class:com.YaNan.frame.jdb.mapper.DefaultSqlSessionExecuter,
+		args.ref:jdbContext
+	},{
+		id:build,
+		class:com.YaNan.frame.jdb.mapper.MapperInterfaceProxyBuilder,
+		args.ref:sqlSession
+	}
+]
+
+```
 ```java
 @PluginBoot()
 @BootArgs(name="-environment-boot",value="com.YaNan.framework.boot.StandEnvironmentBoot")
