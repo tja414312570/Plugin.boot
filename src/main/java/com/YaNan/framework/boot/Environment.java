@@ -17,6 +17,7 @@ import com.typesafe.config.Config;
 public class Environment {
 	public static final String MAIN_CLASS = "-MAIN-CLASS";
 	public static final String MAIN_CLASS_PATH = "-MAIN-CLASS-PATH";
+	private static InheritableThreadLocal<Environment> enInheritableThreadLocal = new InheritableThreadLocal<>();
 	public final static class EnviromentHolder{
 		private static final Environment ENVIRONMENT = new Environment();
 	}
@@ -24,7 +25,9 @@ public class Environment {
 	private Config globalConfig;
 	//全局变量
 	private Map<String,Object> globalVariable = new ConcurrentHashMap<String,Object>();
-	private Environment() {};
+	private Environment() {
+		enInheritableThreadLocal.set(this);
+	};
 	/**
 	 * instance a Environment 
 	 * @return Environment

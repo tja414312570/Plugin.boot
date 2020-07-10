@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.YaNan.frame.plugin.PlugsFactory;
 import com.YaNan.frame.plugin.autowired.property.PropertyManager;
 import com.YaNan.frame.utils.resource.AbstractResourceEntry;
+import com.YaNan.frame.utils.resource.Resource;
 import com.YaNan.frame.utils.resource.ResourceManager;
 import com.YaNan.frame.utils.resource.ResourceNotFoundException;
 import com.typesafe.config.Config;
@@ -30,6 +31,12 @@ public class StandEnvironmentBoot implements EnvironmentBoot{
 	public void loadModelPlugin(Environment environment) {
 		Config config = environment.getConfigure();
 		config.allowKeyNull();
+		ConfigList configList = config.getList("plugins");
+		if(configList != null) {
+			configList.forEach(pConfig->{
+				PlugsFactory.getInstance().addPlugByConfig(pConfig.valueType()==ConfigValueType.STRING?pConfig.unwrapped():pConfig);
+			});
+		}
 		List<String> includeList = config.getStringList("includes");
 		for(String includePath : includeList) {
 			List<AbstractResourceEntry> ares = ResourceManager.getResourceList(includePath);
@@ -73,32 +80,52 @@ public class StandEnvironmentBoot implements EnvironmentBoot{
 		config.allowKeyNull();
 		loadEnvironmentProperties(environment,config);
 	}
-	private void loadModelFromResource(AbstractResourceEntry are,Environment environment) {
-		if(are == null)
-			throw new IllegalArgumentException("resource is not null");
-		log.info("loaded plugin from "+are.getPath());
-		InputStream inputStream = are.getInputStream();
-		InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-		Config modelConfig = ConfigFactory.parseReader(inputStreamReader);
-		modelConfig.allowKeyNull();
-		loadEnvironmentProperties(environment,modelConfig);
-		ConfigList configList = modelConfig.getList("plugins");
+	public void loadModelFromResource(final Resource resource,Environment environment) {
+		if(resource == null)
+			throw new IllegalArgumentException("resource is null");
+		log.info("loaded plugin from "+resource.getPath());
+		InputStream inputStream;
+		try {
+			inputStream = resource.getInputStream();
+			InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+			Config modelConfig = ConfigFactory.parseReader(inputStreamReader);
+			environment.mergeConfig(modelConfig);
+			modelConfig.allowKeyNull();
+			loadEnvironmentProperties(environment,modelConfig);
+			ConfigList configList = modelConfig.getList("plugins");
+			if(configList != null) {
+				configList.forEach(config->{
+					PlugsFactory.getInstance().addPlugByConfig(config.valueType()==ConfigValueType.STRING?config.unwrapped():config);
+				});
+			}
+			PlugsFactory.getInstance().init0();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	public void loadModelFromConfig(final Config config,Environment environment) {
+		if(config == null)
+			throw new IllegalArgumentException("config is null");
+		config.allowKeyNull();
+		loadEnvironmentProperties(environment,config);
+		ConfigList configList = config.getList("plugins");
 		if(configList != null) {
-			configList.forEach(config->{
-				PlugsFactory.getInstance().addPlugByConfig(config.valueType()==ConfigValueType.STRING?config.unwrapped():config);
+			configList.forEach(plugConfig->{
+				PlugsFactory.getInstance().addPlugByConfig(plugConfig.valueType()==ConfigValueType.STRING?plugConfig.unwrapped():plugConfig);
 			});
 		}
 		PlugsFactory.getInstance().init0();
-		environment.getConfigure().merge(modelConfig);
+		environment.getConfigure().merge(config);
 	}
 	@Override
 	public void start(Environment environment) {
+		environment.setVariable("-environment-boot-instance", this);
 		long now = System.currentTimeMillis();
 		loadEnvironmentProperties(environment);
-		log.debug("environment properties loaded at ["+(System.currentTimeMillis()-now)+" ms]");
+		log.info("environment properties loaded at ["+(System.currentTimeMillis()-now)+" ms]");
 		now = System.currentTimeMillis();
 		loadModelPlugin(environment);
-		log.debug("environment model loaded at ["+(System.currentTimeMillis()-now)+" ms]");
+		log.info("environment model loaded at ["+(System.currentTimeMillis()-now)+" ms]");
 	}
 
 	@Override

@@ -34,13 +34,14 @@ public class PluginBootServer {
 	 */
 	public static void run(String... args) {
 		log.info("Plugin Boot Snapshot Version!");
+		printLogo();
 		long startTime = System.currentTimeMillis();
 		//获取主类路径
 		String mainClassPath = ResourceManager.classPath();
 		log.info("Application main class path : "+mainClassPath);
 		//获取主类
 		Class<?> mainClass = deduceMainClass();
-		log.info("Application main class : "+mainClassPath);
+		log.info("Application main class : "+mainClass);
 		//获取环境
 		Environment environment = Environment.getEnviroment();
 		//设置主类路径，主类到环境
@@ -52,7 +53,6 @@ public class PluginBootServer {
 		globalConfigureMap.put("-boot-server-version", "0.0.1-snapshot");
 		Config globalConfig = ConfigFactory.parseMap(globalConfigureMap);
 		environment.mergeConfig(globalConfig);
-		System.out.println(globalConfig);
 		//解析参数
 		resolverBootArguments(args,environment,mainClass);
 		//获取基本配置
@@ -69,7 +69,18 @@ public class PluginBootServer {
 		//引导启动
 		long times = System.currentTimeMillis()-startTime;
 		log.info("Application started at "+times+"[ms]");
-		
+	}
+	private static void printLogo() {
+		log.debug("");
+		log.debug("       PLUGINPLUGID     PLUE         PLUA       PLUR      PLUGINPLUGIY    PLUGINPLUGIN   PLUG         PLUG");
+		log.debug("      PLUG      PLUW   PLUA         PLUN       PLUG    PLUG                  PLUG       PLUGPLUG     PLUG");
+		log.debug("     PLUG      PLUH   PLUO         PLUN       PLUG   PLUG                   PLUG       PLUG PLUG    PLUG");
+		log.debug("    PLUG      PLUY   PLUA         PLUN       PLUG   PLUG                   PLUG       PLUG  PLUG   PLUG");
+		log.debug("   PLUGPLUGPLUGI    PLUG         PLUG       PLUG   PLUG      PLUGINP      PLUG       PLUG   PLUG  PLUG");
+		log.debug("  PLUN             PLUE         PLUV       PLUE   PLUR         PLUG      PLUG       PLUG    PLUG PLUG");
+		log.debug(" PLUG             PLUI         PLUV       PLUE     PLUU       PLUP      PLUG       PLUG     PLUGINPL");
+		log.debug("PLUY             PLUGINPLUGO   PLUGINPLUGINU        PLUGINPLUGIG    PLUGINPLUGIE  PLUG         PLUG");
+		log.debug("");
 	}
 	//获取环境引导
 	private static EnvironmentBoot dedudeEnvironment(Environment environment) {
@@ -120,11 +131,12 @@ public class PluginBootServer {
 		if(!StringUtil.isEmpty(bootYc)) {
 			resource = ResourceManager.getResource(bootYc);
 			if(resource == null)
+				resource = ResourceManager.getResource("classpath:"+bootYc);
+			if(resource == null)
 				throw new PluginBootException("Could not found config resource :"+bootYc);
 		}else {
 			resource = ResourceManager.getResource("classpath:boot.yc");
 		}
-		System.out.println(resource);
 		if(resource != null) {
 			InputStream inputStream = null;
 			Reader reader = null;

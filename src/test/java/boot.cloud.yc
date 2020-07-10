@@ -1,0 +1,36 @@
+#nacos云配置
+nacos:{
+	host:"127.0.0.1",
+	port:"8848",
+	group:"queue",
+	name:"queue",
+	namespace:"",
+}
+#nacos组件
+plugins:[
+	{
+		id:nacosConfigureFactory,#配置解析
+		class:com.YaNan.framework.boot.cloud.nacos.NacosConfigureFactory,
+		method:build,
+		args:"classpath:boot.cloud.yc"
+	},{
+		id:nacosConfigRuntime,#初始化上下文
+		class:com.YaNan.framework.boot.cloud.nacos.NacosConfigRuntime,
+		args.ref:nacosConfigureFactory
+	},{
+		id:nacos,#启用云环境引导
+		class:com.YaNan.framework.boot.cloud.CloudEnvironmentBoot,
+		args.ref:nacosConfigRuntime
+	}
+]
+#云配置 clouds为nacos云配置的解析,DEFAULT_GROUP为配所在分组，boot-jdb为配置名
+clouds.nacos.config:{
+	DEFAULT_GROUP:[
+		boot-jdb #下载boot-jdb这个配置
+	]
+}
+clouds.nacos.properties:{
+	DEFAULT_GROUP:[
+		prop-jdb #下载boot-jdb这个配置
+	]
+}
