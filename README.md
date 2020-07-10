@@ -16,12 +16,66 @@
 * * #-environment-scan:环境扫描包位置，支持classpath
 * * #-boot-configure:引导配置地址，支持classpath
 * * #-boot-disabled:禁用配置，多个用,分开
-
+# 20200710 高效，快速上云
+* 增加云配置组件（当前以nacos实现）
+* 增加云配置监听，当云端配置改变，主动改变本地配置或组件
+* 当云端config改变，组件自动重新加载与之相关的组件
+* - 如果云端配置为properties类型时，本地环境相关变量会改变，但相关组件不会主动更新 @_@ 下一步想办法处理
 # Future
 * junit工具支持
 * 云配置
 * 优化其它组件以适应此引导中的开发方式
 * 优化默认配置、优化架构和性能
+# 云配置案例
+```java 
+===》boot.cloud.yc
+#模块配置
+includes:[
+	"plugin.yc" #基础模块，Plugin.core提供的工具集合
+	"boot.cloud.yc" #云配置
+]
+
+===》boot.cloud.nacos.yc
+#nacos云配置
+nacos:{
+	host:"127.0.0.1",
+	port:"8848",
+	group:"queue",
+	name:"queue",
+	namespace:"",
+}
+#nacos云配置相关组件，此组件将在boot引导后就装载
+plugins:[
+	{
+		id:nacosConfigureFactory,#配置解析
+		class:com.YaNan.framework.boot.cloud.nacos.NacosConfigureFactory,
+		method:build,
+		args:"classpath:boot.cloud.yc"
+	},{
+		id:nacosConfigRuntime,#初始化上下文
+		class:com.YaNan.framework.boot.cloud.nacos.NacosConfigRuntime,
+		args.ref:nacosConfigureFactory
+	},{
+		id:nacos,#启用云环境引导
+		class:com.YaNan.framework.boot.cloud.CloudEnvironmentBoot,
+		args.ref:nacosConfigRuntime
+	}
+]
+#云配置 clouds为nacos云配置的解析,config表明为Plugin组件，properties表明为属性文件,DEFAULT_GROUP为配所在分组，boot-jdb为配置名
+#云组件会优先加载properties中的内容，然后加载config的组件
+clouds.nacos.config:{
+	DEFAULT_GROUP:[
+		boot-jdb #下载boot-jdb这个配置
+	]
+}
+clouds.nacos.properties:{
+	DEFAULT_GROUP:[
+		prop-jdb #下载boot-jdb这个配置
+	]
+}
+
+
+```
 # 配置案例
 ```java
 ====>boot.yc
