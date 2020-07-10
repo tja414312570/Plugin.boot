@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.YaNan.frame.plugin.PlugsFactory;
 import com.YaNan.frame.plugin.autowired.property.PropertyManager;
+import com.YaNan.frame.utils.reflect.cache.ClassHelper;
 import com.YaNan.frame.utils.resource.AbstractResourceEntry;
 import com.YaNan.frame.utils.resource.Resource;
 import com.YaNan.frame.utils.resource.ResourceManager;
@@ -19,6 +20,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigList;
 import com.typesafe.config.ConfigValueType;
+import com.typesafe.config.impl.SimpleConfigObject;
 
 /**
  * 标准环境引导
@@ -103,7 +105,7 @@ public class StandEnvironmentBoot implements EnvironmentBoot{
 			e.printStackTrace();
 		}
 	}
-	public void loadModelFromConfig(final Config config,Environment environment) {
+	public void loadModelFromConfig(final Config config,Environment environment,boolean removeOriginPlugs) {
 		if(config == null)
 			throw new IllegalArgumentException("config is null");
 		config.allowKeyNull();
@@ -111,6 +113,22 @@ public class StandEnvironmentBoot implements EnvironmentBoot{
 		ConfigList configList = config.getList("plugins");
 		if(configList != null) {
 			configList.forEach(plugConfig->{
+				if(removeOriginPlugs) {
+					String className = null;
+					if(plugConfig.valueType()==ConfigValueType.STRING) {
+						className = (String) plugConfig.unwrapped();
+					}else {
+						Config conf = ((SimpleConfigObject) plugConfig).toConfig();
+						className = conf.getString("class");
+					}
+					try {
+						log.info("remove plugin class :"+className);
+						ClassHelper clazz = ClassHelper.getClassHelper(className);
+						PlugsFactory.getInstance().removeRegister(clazz.getCacheClass());
+					} catch (ClassNotFoundException e) {
+						e.printStackTrace();
+					}
+				}
 				PlugsFactory.getInstance().addPlugByConfig(plugConfig.valueType()==ConfigValueType.STRING?plugConfig.unwrapped():plugConfig);
 			});
 		}
