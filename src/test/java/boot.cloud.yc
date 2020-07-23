@@ -15,12 +15,17 @@ plugins:[
 		args:"classpath:boot.cloud.yc"
 	},{
 		id:nacosConfigRuntime,#初始化上下文
+		model:none
 		class:com.yanan.framework.boot.cloud.nacos.NacosConfigRuntime,
 		args.ref:nacosConfigureFactory
 	},{
 		id:nacos,#启用云环境引导
 		class:com.yanan.framework.boot.cloud.nacos.CloudEnvironmentBoot,
 		args.ref:nacosConfigRuntime
+	},{
+		id:nacosResourceLoader #nacos资源加载器
+		class:com.yanan.framework.boot.cloud.nacos.NacosColudResourceLoader
+		field.nacosConfigRuntime.ref:nacosConfigRuntime
 	}
 ]
 #云配置 clouds为nacos云配置的解析,DEFAULT_GROUP为配所在分组，boot-jdb为配置名
