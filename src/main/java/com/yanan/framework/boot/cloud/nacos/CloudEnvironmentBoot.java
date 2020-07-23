@@ -9,28 +9,25 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yanan.framework.boot.StandEnvironmentBoot;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.yanan.frame.plugin.Environment;
 import com.yanan.frame.plugin.autowired.property.PropertyManager;
+import com.yanan.framework.boot.cloud.AbstractUpdateabledEnvironmentBoot;
 
 /**
  * 云环境
  * @author yanan
  */
-public class CloudEnvironmentBoot{
-	private Environment environment;
+public class CloudEnvironmentBoot extends AbstractUpdateabledEnvironmentBoot{
 	private NacosConfigRuntime nacosConfigRuntime;
-	private StandEnvironmentBoot standEnvironmentBoot ;
 	Logger log = LoggerFactory.getLogger(CloudEnvironmentBoot.class);
 	public CloudEnvironmentBoot(NacosConfigRuntime nacosConfigRuntime) {
 		log.info("plugin boot nacos cloud server!");
 		long now = System.currentTimeMillis();
 		this.nacosConfigRuntime = nacosConfigRuntime;
 		environment = Environment.getEnviroment();
-		standEnvironmentBoot = environment.getVariable("-environment-boot-instance");
 		//获取clouds配置
 		Config globalConfig = environment.getConfigure();
 		globalConfig.allowKeyNull();
@@ -41,7 +38,7 @@ public class CloudEnvironmentBoot{
 			//获取属性配置
 			Config propertiesConfig = nacosCloudConfig.getConfig("properties");
 			if(propertiesConfig != null) {
-				loadFromCloud(propertiesConfig,(groupId,dataId,cloudContent,isUpdate)->{
+				loadFromCloud(propertiesConfig,(groupId,dataId,cloudContent)->{
 					log.debug("loaded properties ["+groupId+"]-["+dataId+"]:"+cloudContent.length());
 					Reader reader = new StringReader(cloudContent);
 					try {
@@ -57,11 +54,12 @@ public class CloudEnvironmentBoot{
 			}
 			propertiesConfig = nacosCloudConfig.getConfig("config");
 			if(propertiesConfig != null) {
-				loadFromCloud(propertiesConfig,(groupId,dataId,cloudContent,isUpdate)->{
+				loadFromCloud(propertiesConfig,(groupId,dataId,cloudContent)->{
 					log.debug("loaded config ["+groupId+"]-["+dataId+"]:"+cloudContent.length());
 					Reader reader = new StringReader(cloudContent);
 					Config cloudConfig = ConfigFactory.parseReader(reader);
-					standEnvironmentBoot.loadModelFromConfig(cloudConfig, environment,isUpdate);
+					Environment.getEnviroment().mergeConfig(cloudConfig);
+					loadModelPlugin(cloudConfig);
 				});
 			}
 		}
@@ -76,7 +74,7 @@ public class CloudEnvironmentBoot{
 				try {
 					String configResource = nacosConfigRuntime.getConfig(dataId, groupId, 1000);
 					log.debug("cloud content ["+groupId+"]-["+dataId+"]:"+configResource);
-					executor.execute(groupId,dataId,configResource,false);
+					executor.execute(groupId,dataId,configResource);
 				} catch (NacosException e) {
 					log.error("failed to download ["+groupId+"]-["+dataId+"]",e);
 				}

@@ -53,8 +53,10 @@ public class NacosConfigRuntime {
 			configService.addListener(dataId, groupId, new Listener() {
 				@Override
 				public void receiveConfigInfo(String configInfo) {
-					System.out.println(configInfo);
-					function.execute(groupId,dataId,configInfo,true);
+					logger.debug("config ["+groupId+"]-["+dataId+"] chanaged");
+					long now = System.currentTimeMillis();
+					function.execute(groupId,dataId,configInfo);
+					logger.debug("config ["+groupId+"]-["+dataId+"] loaded at ["+(System.currentTimeMillis()-now)+"ms]");
 				}
 				@Override
 				public Executor getExecutor() {

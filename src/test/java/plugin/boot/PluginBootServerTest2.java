@@ -33,7 +33,7 @@ import com.yanan.frame.plugin.PlugsFactory;
 //@WebApp(contextPath = "/yananFrame", docBase = "/Volumes/GENERAL/tomcat work groups/apache-tomcat-8.0.53/webapps/yananFrame")
 @PluginBoot()
 @BootArgs(name="-environment-boot",value="com.yanan.framework.boot.StandEnvironmentBoot")
-@BootArgs(name="-boot-configure",value="boot-nacos.yc")
+@BootArgs(name="-boot-configure",value="boot.yc")
 //@BootArgs(name="-boot-disabled",value="-boot-configure,-environment-boot")
 @Plugin(PluginWiredHandler.class)
 public class PluginBootServerTest2 {
@@ -43,9 +43,9 @@ public class PluginBootServerTest2 {
 
 			@Override
 			public void onEvent(PluginEvent abstractEvent) {
-				if(abstractEvent.getEventType() == PluginEvent.EventType.register_init) {
+				if(abstractEvent.getEventType() == PluginEvent.EventType.add_registerDefinition) {
 					RegisterDefinition definition = (RegisterDefinition)abstractEvent.getEventContent();
-					System.out.println(definition.getId()+"==>"+definition.getRegisterClass());
+					System.out.println(definition.getId()+"==>"+definition.getRegisterClass()+":"+definition.isSignlton());
 //					new RuntimeException().printStackTrace();
 				}
 			}

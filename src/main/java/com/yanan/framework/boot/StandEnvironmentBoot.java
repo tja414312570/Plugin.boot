@@ -78,12 +78,10 @@ public class StandEnvironmentBoot implements EnvironmentBoot{
 				throw new ResourceNotFoundException("colud not found resource at "+includePath);
 			for(AbstractResourceEntry resourceEntry : ares) {
 				System.out.println("资源:"+resourceEntry);
-				PlugsFactory.init(resourceEntry);
-				
-//				ResourceDecoder<Resource> decoder = PlugsFactory.getPluginsInstanceByAttributeStrict(new TypeToken<ResourceDecoder<Resource>>() {}.getTypeClass()
-//						, AbstractResourceEntry.class.getSimpleName());
-//				decoder.decodeResource(PlugsFactory.getInstance(),resourceEntry);
-//				PlugsFactory.getInstance().refresh();
+				ResourceDecoder<Resource> decoder = PlugsFactory.getPluginsInstanceByAttributeStrict(new TypeToken<ResourceDecoder<Resource>>() {}.getTypeClass()
+						, AbstractResourceEntry.class.getSimpleName());
+				decoder.decodeResource(PlugsFactory.getInstance(),resourceEntry);
+				PlugsFactory.getInstance().refresh();
 			}
 		}
 	}
@@ -163,6 +161,7 @@ public class StandEnvironmentBoot implements EnvironmentBoot{
 					}
 				}
 				tryDeducePluginDefinitionAndAddDefinition(plugConfig);
+				PlugsFactory.getInstance().refresh();
 			});
 		}
 		environment.getConfigure().merge(config);
