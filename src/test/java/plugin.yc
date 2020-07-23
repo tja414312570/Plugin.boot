@@ -1,39 +1,11 @@
 ###################### plugin list
 plugins:[
-		com.YaNan.frame.plugin.autowired.plugin.PluginWiredHandler, ##服务注入提供
-		com.YaNan.frame.plugin.autowired.resource.ResourceWiredHandler, ##资源类注入
-		com.YaNan.frame.plugin.autowired.property.PropertyWiredHandler, ##属性注入
-		com.YaNan.frame.plugin.autowired.exception.ErrorPlugsHandler, ##错误记录
-		##	 com.YaNan.frame.util.quartz.QuartzManager,##Quartz corn注解服务
-		##   com.YaNan.frame.servlets.validator.ParameterValitationRegister, ##参数验证拦截器
-		com.YaNan.frame.servlets.validator.DefaultParameterValidator, ##默认jsr 303 参数验证器
-		com.YaNan.frame.servlets.session.plugin.TokenHandler, ##无状态Token拦截器
-		com.YaNan.frame.servlets.session.parameter.TokenParameterHandler, ##Token参数注入 @TokenAttribute
-		com.YaNan.frame.plugin.autowired.exception.ErrorPlugsHandler, ##异常捕获 @Error
-		com.YaNan.frame.plugin.autowired.plugin.PluginWiredHandler, ##组件注入服务 @Service
-		com.YaNan.frame.plugin.autowired.property.PropertyWiredHandler, ##属性注入服务 @Property
-		com.YaNan.frame.plugin.autowired.property.PropertyWiredHandlerPlugin,##属性扫描工具
-		com.YaNan.frame.plugin.autowired.resource.ResourceWiredHandler, ##资源注入服务 @Resource
-		com.YaNan.frame.servlets.RestControllerUpdater,
-		{##slf4j注入
-			class:com.YaNan.frame.utils.logger.DefaultSlf4jWrideServices,
-			service:org.slf4j.Logger,
-			model:cglib
-			method:getLogger
-		},
-		com.YaNan.frame.servlets.ServletContextInit,##mvc
-		com.YaNan.frame.servlets.session.TokenContextInit,##token
-		## 参数验证
-		com.YaNan.frame.servlets.validator.DefaultParameterValitationHandler,
-		com.YaNan.frame.servlets.parameter.DefaultParameterHandler,
+		com.yanan.frame.plugin.autowired.plugin.PluginWiredHandler, ##服务注入提供
+		com.yanan.frame.plugin.autowired.resource.ResourceWiredHandler, ##资源类注入
+		com.yanan.frame.plugin.autowired.property.PropertyWiredHandler, ##属性注入
+		com.yanan.frame.plugin.autowired.exception.ErrorPlugsHandler, ##错误记录
+		com.yanan.frame.plugin.builder.resolver.ArrayParameterResolver,#数组解析
+		com.yanan.frame.plugin.builder.resolver.ReferenceParameterResolver,#引用解析
+		com.yanan.frame.plugin.builder.resolver.DateParameterResolver,#日期解析
+		#com.yanan.framework.boot.utils.LoggerParameter,#日志注入
 	]
-####################### global configure
-Plugin:{
-	ScanPackage:["**"], ##扫描包位置，多个包用逗号分开或使用数组ScanPackage:[com.YaNan.DZCT,com.YaNan.debug]
-												  ##可以写为ScanPackage:"com.YaNan.DZCT,com.YaNan.debug"
-	includes:"classpath:*.comps",##扫描注册文件
-},
-
-ClassHotUpdater:{
-	contextPath:"/Volumes/GENERAL/git/plugin.boot/target/classes.**Test*"
-}

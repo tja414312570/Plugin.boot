@@ -1,21 +1,22 @@
 plugins:[
 	{
 			id:dataSource,
-			class:com.YaNan.frame.jdb.datasource.DefaultDataSource,
+			class:com.yanan.frame.jdb.datasource.DefaultDataSource,
 			init:init
 		},
 		{
 			id:jdbContext,
-			class:com.YaNan.frame.jdb.JDBContext,
+			class:com.yanan.frame.jdb.JDBContext,
 			args.ref:dataSource,
 			init:init
 		},{
 			id:sqlSession,
-			class:com.YaNan.frame.jdb.mapper.DefaultSqlSessionExecuter,
+			class:com.yanan.frame.jdb.mapper.DefaultSqlSessionExecuter,
 			args.ref:jdbContext
 		},{
 			id:build,
-			class:com.YaNan.frame.jdb.mapper.MapperInterfaceProxyBuilder,
+			class:com.yanan.frame.jdb.mapper.MapperInterfaceProxyBuilder,
 			args.ref:sqlSession
+			field.scanPath.array=["classpath:**"]
 		}
 	]

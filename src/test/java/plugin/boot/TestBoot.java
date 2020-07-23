@@ -1,49 +1,14 @@
 package plugin.boot;
 
-import java.io.File;
-import java.util.Arrays;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
-import javax.servlet.Servlet;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-
-import org.apache.catalina.Context;
-import org.apache.catalina.Globals;
-import org.apache.catalina.LifecycleEvent;
 import org.apache.catalina.LifecycleException;
-import org.apache.catalina.LifecycleListener;
-import org.apache.catalina.LifecycleState;
-import org.apache.catalina.WebResource;
-import org.apache.catalina.WebResourceRoot;
-import org.apache.catalina.connector.Connector;
-import org.apache.catalina.core.AprLifecycleListener;
-import org.apache.catalina.core.DefaultInstanceManager;
-import org.apache.catalina.core.StandardContext;
-import org.apache.catalina.core.StandardServer;
-import org.apache.catalina.servlets.DefaultServlet;
-import org.apache.catalina.startup.Tomcat;
-import org.apache.catalina.webresources.StandardRoot;
-import org.apache.tomcat.SimpleInstanceManager;
-import org.apache.tomcat.util.descriptor.web.FilterDef;
-import org.apache.tomcat.util.descriptor.web.FilterMap;
-
-import com.YaNan.frame.plugin.PlugsFactory;
-import com.YaNan.frame.servlets.CoreDispatcher;
-import com.YaNan.frame.servlets.ServletBuilder;
-import com.YaNan.frame.servlets.ServletContextInit;
-import com.YaNan.frame.servlets.session.TokenContextInit;
-import com.YaNan.frame.servlets.session.filter.TokenFilter;
-import com.YaNan.frame.utils.resource.AbstractResourceEntry;
-import com.YaNan.frame.utils.resource.PackageScanner;
-import com.YaNan.frame.utils.resource.PackageScanner.ClassInter;
-import com.YaNan.frame.utils.resource.ResourceManager;
-import com.YaNan.frame.utils.resource.ResourceScanner;
-import com.YaNan.frame.utils.resource.ResourceScanner.ResourceInter;
-import com.test.test;
 
 public class TestBoot {
-	public static void main(String[] args) throws LifecycleException {
+	public static void main(String[] args) throws LifecycleException, UnsupportedEncodingException {
+		byte[] bytes = {22, 3, 1, 2, 0, 1, 0, 1, -4, 3, 3, 58, -108, -68, -97, -91, 89, 20, -102, 58, -85, 16, -57, -53, 6, 90, 50, -112, -82, 94, -105, 99, 51, 126, -6, 72, -60, -23, 7, -97, 74, 49, 117, 32, 7, 58, 41, 120, 3, 8, -122, 36, -99, 108, -53, -15, 93, 51, 35, 35, -107, -102, -73, -50, 37, 54, -62, -86, -77, 75, -53, 96, -5, 46, -11, 11, 0, 34, 10, 10, 19, 1, 19, 2, 19, 3, -64, 43, -64, 47, -64, 44, -64, 48, -52, -87, -52, -88, -64, 19, -64, 20, 0, -100, 0, -99, 0, 47, 0, 53, 0, 10, 1, 0, 1, -111, -118, -118, 0, 0, 0, 0, 0, 14, 0, 12, 0, 0, 9, 108, 111, 99, 97, 108, 104, 111, 115, 116, 0, 23, 0, 0, -1, 1, 0, 1, 0, 0, 10, 0, 10, 0, 8, -102, -102, 0, 29, 0, 23, 0, 24, 0, 11, 0, 2, 1, 0, 0, 35, 0, 0, 0, 16, 0, 14, 0, 12, 2, 104, 50, 8, 104, 116, 116, 112, 47, 49, 46, 49, 0, 5, 0, 5, 1, 0, 0, 0, 0, 0, 13, 0, 20, 0, 18, 4, 3, 8, 4, 4, 1, 5, 3, 8, 5, 5, 1, 8, 6, 6, 1, 2, 1, 0, 18, 0, 0, 0, 51, 0, 43, 0, 41, -102, -102, 0, 1, 0, 0, 29, 0, 32, -12, -31, -17, 26, -52, 79, 63, -11, -90, 57, -73, -125, -105, 82, 75, 36, -59, -48, -24, -69, 105, 72, -115, -51, 85, -117, -118, -54, 3, 98, 96, 117, 0, 45, 0, 2, 1, 1, 0, 43, 0, 11, 10, -38, -38, 3, 4, 3, 3, 3, 2, 3, 1, 0, 27, 0, 3, 2, 0, 2, 90, 90, 0, 1, 0, 0, 21, 0, -49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		System.out.println(new String(bytes, StandardCharsets.ISO_8859_1));
 		
 
 	}

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wrapper namespace="com.yanan.billing.service.billing.BillingService" database="yanan_Billing">
+	<select id="queryBillingByAccount" resultType="com.yanan.billing.model.BillingModel">
+		SELECT * FROM car_billing
+		where accountId = #{accountId}
+	</select>
+</wrapper>

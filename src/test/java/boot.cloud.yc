@@ -1,6 +1,6 @@
 #nacos云配置
 nacos:{
-	host:"127.0.0.1",
+	host:"172.26.37.205",
 	port:"8848",
 	group:"queue",
 	name:"queue",
@@ -10,16 +10,16 @@ nacos:{
 plugins:[
 	{
 		id:nacosConfigureFactory,#配置解析
-		class:com.YaNan.framework.boot.cloud.nacos.NacosConfigureFactory,
+		class:com.yanan.framework.boot.cloud.nacos.NacosConfigureFactory,
 		method:build,
 		args:"classpath:boot.cloud.yc"
 	},{
 		id:nacosConfigRuntime,#初始化上下文
-		class:com.YaNan.framework.boot.cloud.nacos.NacosConfigRuntime,
+		class:com.yanan.framework.boot.cloud.nacos.NacosConfigRuntime,
 		args.ref:nacosConfigureFactory
 	},{
 		id:nacos,#启用云环境引导
-		class:com.YaNan.framework.boot.cloud.CloudEnvironmentBoot,
+		class:com.yanan.framework.boot.cloud.nacos.CloudEnvironmentBoot,
 		args.ref:nacosConfigRuntime
 	}
 ]
