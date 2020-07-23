@@ -18,7 +18,6 @@ import com.yanan.utils.resource.Resource;
 public class NacosCloudConfigTest {
 	public static void main(String[] args) {
 		PluginBootServer.run(args);
-		System.out.println("================");
 		ResourceLoader resourceLoader = new DefaultResourceLoader();
 		Resource resource = resourceLoader.getResource("nacos:DEFAULT_GROUP/boot-jdb");
 		Resource resource2 = resourceLoader.getResource("classpath:boot.cloud.yc");

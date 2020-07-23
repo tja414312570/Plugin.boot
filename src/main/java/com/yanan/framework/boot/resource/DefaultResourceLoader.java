@@ -23,9 +23,7 @@ public class DefaultResourceLoader implements ResourceLoader{
 			if(pathTokenIndex != -1) {
 				pathToken = path.substring(0,pathTokenIndex);
 			}
-			System.out.println(pathToken);
 			ResourceLoader resourceLoader = getResourceLoader(pathToken);
-			System.out.println(resourceLoader.getClass());
 			resource = resourceLoader.getResource(path);
 		}else {
 			resource =  ResourceManager.getResource(path);
