@@ -9,4 +9,5 @@ plugins:[
 		com.yanan.frame.plugin.builder.resolver.DateParameterResolver,#日期解析
 		com.yanan.framework.boot.utils.LoggerParameter,#日志注入
 		com.yanan.framework.boot.resource.DefaultResourceLoader
+		com.yanan.framework.boot.resource.HttpResourceLoader
 	]
