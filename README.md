@@ -3,6 +3,25 @@
 * 快速开发、简单配置、集成Plugin.mvc、无额为第三依赖（依赖于Plugin，embedded-tomcat等基础）
 * WebApp 以原生WebApp的启动方式启动Web应用，支持Web.xml,原生Servlet3.0开发规范，支持Spring等
 * WebContext 以基于Plugin.mvc的模式启动Web应用，不支持Web.xml等，原生Servlet3.0的注解开发方式的Filter、Servlet等需要添加@Register注册为Plugin的Bean，启动更快，支持静态资源，JSP
+# Future
+* junit工具支持
+* 优化其它组件以适应此引导中的开发方式
+* 优化默认配置、优化架构和性能
+* 代码优化
+* 添加ftp和http等资源加载器，资源加载器核心可能会移植到plugin.core
+
+# 20200723 
+* 根据新的Plugin.core设计程序，处理之前不合理的部分逻辑
+* 新增资源加载器接口ResourceLoader，一个默认的通用的资源加载器(DefaultResourceLoader)和一个nacos云配置资源加载器(NacosCloudConfigResourceLoader)
+* 新增一个抽象可更新引导环境，用于提供配置变化的同时更改相关组件
+
+# 20200710 高效，快速上云
+* 增加云配置组件（当前以nacos实现）
+* 增加云配置监听，当云端配置改变，主动改变本地配置或组件
+* 当云端config改变，组件自动重新加载与之相关的组件
+* - 如果云端配置为properties类型时，本地环境相关变量会改变，但相关组件不会主动更新 @_@ 下一步想办法处理 
+* - 何况plugin.core也得扩展来适应boot的各种新能力，今天实在头有点混乱，明天再继续
+
 # 20200709 不只是简单，更要明了
 * 理念说明：将配置文件独立出来，每个组件提供默认配置，同时配置可以很轻松的阅读，以及快速理解，同时易于更改
 * 独立基础引导服务PluginBootService,用于初始化引导参数，boot级别的配置
@@ -16,17 +35,33 @@
 * * #-environment-scan:环境扫描包位置，支持classpath
 * * #-boot-configure:引导配置地址，支持classpath
 * * #-boot-disabled:禁用配置，多个用,分开
-# 20200710 高效，快速上云
-* 增加云配置组件（当前以nacos实现）
-* 增加云配置监听，当云端配置改变，主动改变本地配置或组件
-* 当云端config改变，组件自动重新加载与之相关的组件
-* - 如果云端配置为properties类型时，本地环境相关变量会改变，但相关组件不会主动更新 @_@ 下一步想办法处理 
-* - 何况plugin.core也得扩展来适应boot的各种新能力，今天实在头有点混乱，明天再继续
-# Future
-* junit工具支持
-* 云配置
-* 优化其它组件以适应此引导中的开发方式
-* 优化默认配置、优化架构和性能
+# 资源获取，更简单高效
+```java
+	//引导服务
+	PluginBootServer.run(args);
+	//获取默认资源加载器
+	ResourceLoader resourceLoader = new DefaultResourceLoader();
+	//获取nacos配置资源
+	Resource resource = resourceLoader.getResource("nacos:DEFAULT_GROUP/boot-jdb");
+	//类路径资源
+	Resource resource2 = resourceLoader.getResource("classpath:boot.cloud.yc");
+	//文件系统资源
+	Resource resource3 = resourceLoader.getResource("/Volumes/GENERAL/fusionaccess_mac.dmg");
+	try {
+		System.out.println("资源名称:"+resource.getName()+",大小:"+resource.size());
+		System.out.println("资源名称:"+resource2.getName()+",大小:"+resource2.size());
+		System.out.println("资源名称:"+resource3.getName()+",大小:"+resource3.size());
+	} catch (IOException e1) {
+		e1.printStackTrace();
+	}
+
+[2020-07-23 19:29:50] [ INFO] [NacosColudResourceLoader:27] : download resource from nacos:DEFAULT_GROUP/boot-jdb
+[2020-07-23 19:29:50] [DEBUG] [NacosConfigRuntime:47] : download config [DEFAULT_GROUP]-[boot-jdb]
+资源名称:boot-jdb,大小:486
+资源名称:boot.cloud.yc,大小:1074
+资源名称:fusionaccess_mac.dmg,大小:14098429
+
+```
 # 云配置案例
 ```java 
 ===》boot.cloud.yc
