@@ -39,3 +39,6 @@ clouds.nacos.properties:{
 		prop-jdb #下载boot-jdb这个配置
 	]
 }
+clouds.nacos.bind:{
+	DEFAULT_GROUP/prop-jdb:DEFAULT_GROUP/boot-jdb
+}

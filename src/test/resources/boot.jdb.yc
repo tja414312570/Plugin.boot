@@ -1,0 +1,22 @@
+plugins:[
+	{
+			id:dataSource,
+			class:com.yanan.frame.jdb.datasource.DefaultDataSource,
+			init:init
+		},
+		{
+			id:jdbContext,
+			class:com.yanan.frame.jdb.JDBContext,
+			args.ref:dataSource,
+			init:init
+		},{
+			id:sqlSession,
+			class:com.yanan.frame.jdb.mapper.DefaultSqlSessionExecuter,
+			args.ref:jdbContext
+		},{
+			id:build,
+			class:com.yanan.frame.jdb.mapper.MapperInterfaceProxyBuilder,
+			args.ref:sqlSession
+			field.scanPath.array=["classpath:**"]
+		}
+	]

@@ -5,7 +5,7 @@
 	<groupId>com.github.tja414312570</groupId>
 	<artifactId>plugin.boot</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>mvc</name>
+	<name>plugin.boot</name>
 	<packaging>pom</packaging>
 	<description>support servlets </description>
 	<parent>
@@ -38,17 +38,17 @@
 	<dependency>
 			<groupId>com.github.tja414312570</groupId>
 			<artifactId>plugin.jdb</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.tja414312570</groupId>
 			<artifactId>plugin.mvc</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.tja414312570</groupId>
 			<artifactId>plugin.ant.nacos</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.0.1</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.apache.tomcat.embed/tomcat-embed-core -->
 		<dependency>
