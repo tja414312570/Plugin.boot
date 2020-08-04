@@ -12,17 +12,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
 
+import com.google.gson.Gson;
 import com.yanan.billing.constant.ResponseCode;
 import com.yanan.billing.model.response.BaseAppResult;
-import com.yanan.frame.plugin.annotations.Register;
-import com.yanan.frame.servlets.RequestContext;
-import com.yanan.frame.servlets.ServletBean;
-import com.yanan.frame.servlets.annotations.restful.ParameterType;
-import com.yanan.frame.servlets.exception.ServletExceptionHandler;
-import com.yanan.frame.servlets.parameter.annotations.RequestBody;
-import com.yanan.frame.servlets.parameter.annotations.RequestParam;
-import com.yanan.frame.servlets.validator.ParameterVerificationFailed;
-import com.google.gson.Gson;
+import com.yanan.framework.plugin.annotations.Register;
+import com.yanan.framework.webmvc.RequestContext;
+import com.yanan.framework.webmvc.ServletBean;
+import com.yanan.framework.webmvc.annotations.restful.ParameterType;
+import com.yanan.framework.webmvc.exception.ServletExceptionHandler;
+import com.yanan.framework.webmvc.parameter.annotations.RequestBody;
+import com.yanan.framework.webmvc.parameter.annotations.RequestParam;
+import com.yanan.framework.webmvc.validator.ParameterVerificationFailed;
 
 /**
  * 参数验证响应处理

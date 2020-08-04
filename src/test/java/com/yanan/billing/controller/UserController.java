@@ -9,19 +9,19 @@ import com.yanan.billing.model.response.BaseAppResult;
 import com.yanan.billing.service.sms.SMSService;
 import com.yanan.billing.service.user.UserService;
 import com.yanan.billing.utils.UserUtils;
-import com.yanan.frame.jdb.DBInterface.LOGIC_STATUS;
-import com.yanan.frame.jdb.operate.Insert;
-import com.yanan.frame.jdb.operate.Query;
-import com.yanan.frame.plugin.annotations.Service;
-import com.yanan.frame.plugin.autowired.exception.Error;
-import com.yanan.frame.servlets.annotations.Groups;
-import com.yanan.frame.servlets.annotations.RequestMapping;
-import com.yanan.frame.servlets.parameter.HTTP.POST;
-import com.yanan.frame.servlets.parameter.annotations.RequestBody;
-import com.yanan.frame.servlets.parameter.annotations.RequestParam;
-import com.yanan.frame.servlets.response.annotations.ResponseJson;
-import com.yanan.frame.servlets.session.Token;
-import com.yanan.frame.servlets.validator.annotations.Length;
+import com.yanan.framework.jdb.DBInterface.LOGIC_STATUS;
+import com.yanan.framework.jdb.operate.Insert;
+import com.yanan.framework.jdb.operate.Query;
+import com.yanan.framework.plugin.annotations.Service;
+import com.yanan.framework.plugin.autowired.exception.Error;
+import com.yanan.framework.webmvc.annotations.Groups;
+import com.yanan.framework.webmvc.annotations.RequestMapping;
+import com.yanan.framework.webmvc.parameter.HTTP.POST;
+import com.yanan.framework.webmvc.parameter.annotations.RequestBody;
+import com.yanan.framework.webmvc.parameter.annotations.RequestParam;
+import com.yanan.framework.webmvc.response.annotations.ResponseJson;
+import com.yanan.framework.webmvc.session.Token;
+import com.yanan.framework.webmvc.validator.annotations.Length;
 
 /**
  * 用户控制器

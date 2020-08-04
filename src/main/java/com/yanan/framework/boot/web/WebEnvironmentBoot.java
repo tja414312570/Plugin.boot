@@ -33,14 +33,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yanan.framework.boot.EnvironmentBoot;
-import com.yanan.frame.plugin.Environment;
-import com.yanan.frame.plugin.PlugsFactory;
-import com.yanan.frame.plugin.annotations.Register;
-import com.yanan.frame.servlets.CoreDispatcher;
-import com.yanan.frame.servlets.ServletContextInit;
-import com.yanan.frame.servlets.session.TokenContextInit;
-import com.yanan.frame.servlets.session.filter.TokenFilter;
+import com.yanan.framework.plugin.Environment;
+import com.yanan.framework.plugin.PlugsFactory;
+import com.yanan.framework.plugin.annotations.Register;
+import com.yanan.framework.webmvc.CoreDispatcher;
+import com.yanan.framework.webmvc.ServletContextInit;
+import com.yanan.framework.webmvc.session.TokenContextInit;
+import com.yanan.framework.webmvc.session.filter.TokenFilter;
 import com.yanan.utils.reflect.AppClassLoader;
+import com.yanan.utils.reflect.ReflectUtils;
 import com.yanan.utils.resource.ResourceManager;
 import com.yanan.utils.string.StringUtil;
 
@@ -359,9 +360,8 @@ public class WebEnvironmentBoot implements EnvironmentBoot{
 			is.read(bytes);
 			Class<?> WebEnvironmentBootClass = AppClassLoader.loadClass(WEB_ENVIROMNET_BOOT_PATH, bytes, appClassLoader);
 			environment.setVariable(WebEnvironmentBoot.WEB_ENVIROMNET_BOOT_CLASS, WebEnvironmentBootClass);
-			AppClassLoader.invokeStaticMethod(WebEnvironmentBootClass, "started",environment);
+			ReflectUtils.invokeStaticMethod(WebEnvironmentBootClass, "started",environment);
 		} catch (IOException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

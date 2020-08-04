@@ -1,8 +1,8 @@
 package com.yanan.framework.boot.cloud.nacos;
 
 import com.alibaba.nacos.api.exception.NacosException;
-import com.yanan.frame.plugin.ProxyModel;
-import com.yanan.frame.plugin.annotations.Register;
+import com.yanan.framework.plugin.ProxyModel;
+import com.yanan.framework.plugin.annotations.Register;
 
 @Register(model=ProxyModel.CGLIB)
 public class NacosCloudConfigServer implements CloudConfigServer{

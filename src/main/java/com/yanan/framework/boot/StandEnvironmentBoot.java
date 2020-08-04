@@ -16,16 +16,16 @@ import com.typesafe.config.ConfigList;
 import com.typesafe.config.ConfigValue;
 import com.typesafe.config.ConfigValueType;
 import com.typesafe.config.impl.SimpleConfigObject;
-import com.yanan.frame.plugin.Environment;
-import com.yanan.frame.plugin.Plugin;
-import com.yanan.frame.plugin.PlugsFactory;
-import com.yanan.frame.plugin.autowired.property.PropertyManager;
-import com.yanan.frame.plugin.builder.PluginDefinitionBuilderFactory;
-import com.yanan.frame.plugin.decoder.ResourceDecoder;
-import com.yanan.frame.plugin.definition.RegisterDefinition;
+import com.yanan.framework.plugin.Environment;
+import com.yanan.framework.plugin.Plugin;
+import com.yanan.framework.plugin.PlugsFactory;
+import com.yanan.framework.plugin.autowired.property.PropertyManager;
+import com.yanan.framework.plugin.builder.PluginDefinitionBuilderFactory;
+import com.yanan.framework.plugin.decoder.ResourceDecoder;
+import com.yanan.framework.plugin.definition.RegisterDefinition;
 import com.yanan.utils.reflect.TypeToken;
 import com.yanan.utils.reflect.cache.ClassHelper;
-import com.yanan.utils.resource.AbstractResourceEntry;
+import com.yanan.utils.resource.Resource;
 import com.yanan.utils.resource.Resource;
 import com.yanan.utils.resource.ResourceManager;
 import com.yanan.utils.resource.ResourceNotFoundException;
@@ -70,16 +70,16 @@ public class StandEnvironmentBoot implements EnvironmentBoot{
 		PlugsFactory.getInstance().refresh();
 		List<String> includeList = config.getStringList("includes");
 		for(String includePath : includeList) {
-			List<AbstractResourceEntry> ares = ResourceManager.getResourceList(includePath);
+			List<Resource> ares = ResourceManager.getResourceList(includePath);
 			if(ares == null || ares.isEmpty()) {
 				ares = ResourceManager.getResourceList("classpath:"+includePath);
 			}
 			if(ares == null)
 				throw new ResourceNotFoundException("colud not found resource at "+includePath);
-			for(AbstractResourceEntry resourceEntry : ares) {
+			for(Resource resourceEntry : ares) {
 				System.out.println("资源:"+resourceEntry);
 				ResourceDecoder<Resource> decoder = PlugsFactory.getPluginsInstanceByAttributeStrict(new TypeToken<ResourceDecoder<Resource>>() {}.getTypeClass()
-						, AbstractResourceEntry.class.getSimpleName());
+						, Resource.class.getSimpleName());
 				decoder.decodeResource(PlugsFactory.getInstance(),resourceEntry);
 				PlugsFactory.getInstance().refresh();
 			}
@@ -88,14 +88,14 @@ public class StandEnvironmentBoot implements EnvironmentBoot{
 	public void loadEnvironmentProperties(Environment environment,Config config) {
 		List<String> includeList = config.getStringList("properties");
 		for(String includePath : includeList) {
-			List<AbstractResourceEntry> ares = ResourceManager.getResourceList(includePath);
+			List<Resource> ares = ResourceManager.getResourceList(includePath);
 			if(ares == null || ares.isEmpty()) {
 				ares = ResourceManager.getResourceList("classpath:"+includePath);
 			}
 			if(ares == null)
 				throw new ResourceNotFoundException("colud not found resource at "+includePath);
 //			loadModelFromResource(are,environment);
-			for(AbstractResourceEntry resourceEntry : ares) {
+			for(Resource resourceEntry : ares) {
 				Properties properties = new Properties();
 				try {
 					log.info("loaded properties from "+resourceEntry.getPath());

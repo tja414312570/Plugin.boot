@@ -4,10 +4,10 @@ import java.util.Date;
 
 import javax.validation.constraints.Pattern;
 
-import com.yanan.frame.jdb.annotation.Column;
-import com.yanan.frame.jdb.annotation.Tab;
-import com.yanan.frame.servlets.parameter.HTTP.POST;
-import com.yanan.frame.servlets.parameter.annotations.UUID;
+import com.yanan.framework.jdb.annotation.Column;
+import com.yanan.framework.jdb.annotation.Tab;
+import com.yanan.framework.webmvc.parameter.HTTP.POST;
+import com.yanan.framework.webmvc.parameter.annotations.UUID;
 
 /**
  * 用户账户模型
@@ -41,7 +41,7 @@ public class UserAccountModel {
 	/**
 	 * 用户创建时间
 	 */
-	@com.yanan.frame.servlets.parameter.annotations.Date(groups=POST.class)
+	@com.yanan.framework.webmvc.parameter.annotations.Date(groups=POST.class)
 	@Column(type="datetime",Annotations="用户创建时间")
 	private Date createDate;
 	/**

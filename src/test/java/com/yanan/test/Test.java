@@ -3,13 +3,13 @@ import javax.validation.constraints.NotNull;
 
 import org.slf4j.Logger;
 
-import com.yanan.frame.plugin.annotations.Register;
-import com.yanan.frame.plugin.annotations.Service;
-import com.yanan.frame.servlets.annotations.RequestMapping;
-import com.yanan.frame.servlets.parameter.annotations.RequestParam;
-import com.yanan.frame.servlets.response.annotations.ResponseJson;
-import com.yanan.frame.servlets.session.Token;
-import com.yanan.frame.servlets.session.annotation.Authentication;
+import com.yanan.framework.plugin.annotations.Register;
+import com.yanan.framework.plugin.annotations.Service;
+import com.yanan.framework.webmvc.annotations.RequestMapping;
+import com.yanan.framework.webmvc.parameter.annotations.RequestParam;
+import com.yanan.framework.webmvc.response.annotations.ResponseJson;
+import com.yanan.framework.webmvc.session.Token;
+import com.yanan.framework.webmvc.session.annotation.Authentication;
 
 @Register
 public class Test {

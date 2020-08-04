@@ -2,9 +2,9 @@ package com.yanan.billing.controller;
 
 import com.yanan.billing.constant.Roles;
 import com.yanan.billing.model.UserAccountModel;
-import com.yanan.frame.servlets.annotations.RequestMapping;
-import com.yanan.frame.servlets.session.Token;
-import com.yanan.frame.servlets.session.annotation.Authentication;
+import com.yanan.framework.webmvc.annotations.RequestMapping;
+import com.yanan.framework.webmvc.session.Token;
+import com.yanan.framework.webmvc.session.annotation.Authentication;
 
 @RequestMapping("/mime")
 public class PageController {

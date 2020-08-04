@@ -4,11 +4,11 @@ import java.util.Date;
 
 import com.yanan.billing.model.UserAccountModel;
 import com.yanan.billing.model.UserTokenModel;
-import com.yanan.frame.jdb.DBInterface.LOGIC_STATUS;
-import com.yanan.frame.jdb.operate.Insert;
-import com.yanan.frame.plugin.annotations.Register;
-import com.yanan.frame.plugin.autowired.property.Property;
-import com.yanan.frame.servlets.session.Token;
+import com.yanan.framework.jdb.DBInterface.LOGIC_STATUS;
+import com.yanan.framework.jdb.operate.Insert;
+import com.yanan.framework.plugin.annotations.Register;
+import com.yanan.framework.plugin.autowired.property.Property;
+import com.yanan.framework.webmvc.session.Token;
 
 @Register
 public class UserUtils {

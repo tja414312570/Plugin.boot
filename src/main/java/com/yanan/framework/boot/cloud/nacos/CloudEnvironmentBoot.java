@@ -14,8 +14,8 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import com.yanan.frame.plugin.Environment;
-import com.yanan.frame.plugin.autowired.property.PropertyManager;
+import com.yanan.framework.plugin.Environment;
+import com.yanan.framework.plugin.autowired.property.PropertyManager;
 import com.yanan.framework.boot.cloud.AbstractUpdateabledEnvironmentBoot;
 import com.yanan.utils.string.StringUtil;
 

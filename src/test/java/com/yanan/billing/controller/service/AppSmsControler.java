@@ -4,11 +4,11 @@ import javax.validation.constraints.Pattern;
 
 import com.yanan.billing.model.response.BaseAppResult;
 import com.yanan.billing.service.sms.SMSService;
-import com.yanan.frame.plugin.annotations.Service;
-import com.yanan.frame.servlets.annotations.PostMapping;
-import com.yanan.frame.servlets.annotations.RequestMapping;
-import com.yanan.frame.servlets.parameter.annotations.RequestParam;
-import com.yanan.frame.servlets.response.annotations.ResponseJson;
+import com.yanan.framework.plugin.annotations.Service;
+import com.yanan.framework.webmvc.annotations.PostMapping;
+import com.yanan.framework.webmvc.annotations.RequestMapping;
+import com.yanan.framework.webmvc.parameter.annotations.RequestParam;
+import com.yanan.framework.webmvc.response.annotations.ResponseJson;
 /**
  * app短信验证码发送
  * @author yanan

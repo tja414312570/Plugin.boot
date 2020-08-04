@@ -11,7 +11,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebInitParam;
 
-import com.yanan.frame.plugin.annotations.Register;
+import com.yanan.framework.plugin.annotations.Register;
 @Register
 @WebInitParam(name = "", value = "")
 @WebFilter(filterName = "tokenFilters", urlPatterns = "/*")

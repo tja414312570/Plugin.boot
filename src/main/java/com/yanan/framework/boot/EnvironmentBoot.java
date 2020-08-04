@@ -1,6 +1,6 @@
 package com.yanan.framework.boot;
 
-import com.yanan.frame.plugin.Environment;
+import com.yanan.framework.plugin.Environment;
 
 public interface EnvironmentBoot {
 	void start(Environment environment);

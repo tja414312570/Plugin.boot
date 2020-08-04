@@ -1,5 +1,5 @@
 package com.yanan.billing.service.sms;
-import com.yanan.frame.plugin.annotations.Service;
+import com.yanan.framework.plugin.annotations.Service;
 
 @Service
 public interface SMSService {

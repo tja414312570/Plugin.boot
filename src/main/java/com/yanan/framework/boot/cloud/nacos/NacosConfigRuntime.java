@@ -1,5 +1,6 @@
 package com.yanan.framework.boot.cloud.nacos;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -12,7 +13,8 @@ import com.alibaba.nacos.api.config.ConfigFactory;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
 import com.alibaba.nacos.api.exception.NacosException;
-import com.yanan.frame.plugin.PlugsFactory;
+import com.yanan.framework.plugin.PlugsFactory;
+import com.yanan.framework.resource.ResourceLoaderException;
 
 public class NacosConfigRuntime {
 	
@@ -23,9 +25,14 @@ public class NacosConfigRuntime {
 	List<String> eventList = new ArrayList<String>(16);
 	public NacosConfigRuntime(String path) {
 		logger.debug("Nacos Cloud Configure server!");
-		properties = NacosConfigureFactory.build(path);
-		logger.debug("Ant Nacos servcie config "+properties);
-		this.init(properties);
+		try {
+			properties = NacosConfigureFactory.build(path);
+			logger.debug("Ant Nacos servcie config "+properties);
+			this.init(properties);
+		} catch (IOException e) {
+			throw new ResourceLoaderException(e);
+		}
+		
 	}
 	
 	public void init(Properties properties) {

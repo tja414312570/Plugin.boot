@@ -1,19 +1,12 @@
 package plugin.boot;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.DecimalFormat;
 
-import com.yanan.frame.plugin.Environment;
-import com.yanan.frame.plugin.annotations.Register;
 import com.yanan.framework.boot.BootArgs;
 import com.yanan.framework.boot.PluginBoot;
 import com.yanan.framework.boot.PluginBootServer;
-import com.yanan.framework.boot.resource.DefaultResourceLoader;
-import com.yanan.framework.boot.resource.ResourceLoader;
-import com.yanan.utils.resource.Resource;
+import com.yanan.framework.plugin.Environment;
+import com.yanan.framework.plugin.annotations.Register;
 
 @BootArgs(name="-boot-configure",value="boot-nacos.yc")
 @BootArgs(name="-environment-boot",value="com.yanan.framework.boot.StandEnvironmentBoot")

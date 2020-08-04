@@ -2,13 +2,13 @@ package com.yanan.billing.service.user;
 
 
 import com.yanan.billing.model.UserAccountModel;
-import com.yanan.frame.jdb.annotation.Sql;
+import com.yanan.framework.jdb.annotation.Sql;
 /**
  * 用户登录服务
  * @author yanan
  *
  */
-import com.yanan.frame.plugin.annotations.Service;
+import com.yanan.framework.plugin.annotations.Service;
 @Service
 @Sql
 public interface UserService {

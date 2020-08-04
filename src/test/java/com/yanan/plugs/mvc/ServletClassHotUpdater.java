@@ -5,10 +5,10 @@ import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yanan.frame.plugin.annotations.Register;
-import com.yanan.frame.plugin.hot.ClassUpdateListener;
-import com.yanan.frame.servlets.RestfulDispatcher;
-import com.yanan.frame.plugin.PlugsFactory;
+import com.yanan.framework.plugin.annotations.Register;
+import com.yanan.framework.plugin.hot.ClassUpdateListener;
+import com.yanan.framework.webmvc.RestfulDispatcher;
+import com.yanan.framework.plugin.PlugsFactory;
 
 @Register(attribute = "com.yanan.billing.controller.*")
 public class ServletClassHotUpdater implements ClassUpdateListener{

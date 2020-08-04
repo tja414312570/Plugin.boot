@@ -1,6 +1,6 @@
 package com.yanan.test.ant;
 
-import com.yanan.frame.ant.annotations.Ant;
+import com.yanan.framework.ant.annotations.Ant;
 
 @Ant("provider")
 public interface AntService2 {

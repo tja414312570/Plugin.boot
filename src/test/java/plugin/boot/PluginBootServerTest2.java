@@ -1,30 +1,19 @@
 package plugin.boot;
 
 import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.Map;
 
 import org.apache.catalina.LifecycleException;
 
-import com.yanan.frame.plugin.autowired.plugin.PluginWiredHandler;
-import com.yanan.frame.plugin.builder.PluginInstanceFactory;
-import com.yanan.frame.plugin.decoder.ResourceDecoder;
-import com.yanan.frame.plugin.definition.RegisterDefinition;
-import com.yanan.frame.plugin.event.EventListener;
 import com.yanan.framework.boot.BootArgs;
 import com.yanan.framework.boot.Plugin;
 import com.yanan.framework.boot.PluginBoot;
 import com.yanan.framework.boot.PluginBootServer;
-import com.yanan.framework.boot.cloud.nacos.CloudConfigServer;
-import com.yanan.utils.resource.AbstractResourceEntry;
-import com.yanan.utils.resource.Resource;
-import com.alibaba.fastjson.util.ParameterizedTypeImpl;
-import com.yanan.frame.ant.service.Function;
-import com.yanan.frame.plugin.Environment;
-import com.yanan.frame.plugin.PluginEvent;
-import com.yanan.frame.plugin.PlugsFactory;
+import com.yanan.framework.plugin.Environment;
+import com.yanan.framework.plugin.PluginEvent;
+import com.yanan.framework.plugin.PlugsFactory;
+import com.yanan.framework.plugin.autowired.plugin.PluginWiredHandler;
+import com.yanan.framework.plugin.definition.RegisterDefinition;
+import com.yanan.framework.plugin.event.EventListener;
 
 //@EnableClassHotUpdater(contextClass=PluginBootServerTest.class);
 //@WebContext(contextPath = "/", docBase = "webapp")4

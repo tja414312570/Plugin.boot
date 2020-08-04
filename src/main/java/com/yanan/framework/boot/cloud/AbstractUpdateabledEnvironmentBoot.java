@@ -9,11 +9,11 @@ import com.typesafe.config.ConfigList;
 import com.typesafe.config.ConfigValue;
 import com.typesafe.config.ConfigValueType;
 import com.typesafe.config.impl.SimpleConfigObject;
-import com.yanan.frame.plugin.Environment;
-import com.yanan.frame.plugin.Plugin;
-import com.yanan.frame.plugin.PlugsFactory;
-import com.yanan.frame.plugin.builder.PluginDefinitionBuilderFactory;
-import com.yanan.frame.plugin.definition.RegisterDefinition;
+import com.yanan.framework.plugin.Environment;
+import com.yanan.framework.plugin.Plugin;
+import com.yanan.framework.plugin.PlugsFactory;
+import com.yanan.framework.plugin.builder.PluginDefinitionBuilderFactory;
+import com.yanan.framework.plugin.definition.RegisterDefinition;
 import com.yanan.framework.boot.PluginBootException;
 import com.yanan.framework.boot.StandEnvironmentBoot;
 

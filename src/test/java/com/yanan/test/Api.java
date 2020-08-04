@@ -1,7 +1,7 @@
 package com.yanan.test;
 
-import com.yanan.frame.servlets.annotations.RequestMapping;
-import com.yanan.frame.servlets.response.annotations.ResponseJson;
+import com.yanan.framework.webmvc.annotations.RequestMapping;
+import com.yanan.framework.webmvc.response.annotations.ResponseJson;
 
 public class Api {
 	@ResponseJson()

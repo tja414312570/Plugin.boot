@@ -7,10 +7,10 @@ import java.util.Properties;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import com.yanan.frame.ant.exception.AntInitException;
-import com.yanan.frame.plugin.exception.PluginInitException;
+import com.yanan.framework.ant.exception.AntInitException;
+import com.yanan.framework.plugin.exception.PluginInitException;
 import com.yanan.utils.asserts.Assert;
-import com.yanan.utils.resource.AbstractResourceEntry;
+import com.yanan.utils.resource.Resource;
 import com.yanan.utils.resource.ResourceManager;
 
 public class NacosConfigureFactory {
@@ -33,10 +33,10 @@ public class NacosConfigureFactory {
 		
 		return properties;
 	}
-	public static Properties build(String filePath) {
+	public static Properties build(String filePath) throws IOException {
 		System.out.println(filePath);
 		Assert.isNull(filePath, "nacos config name is null");
-		AbstractResourceEntry resourceManager =ResourceManager.getResource(filePath);
+		Resource resourceManager =ResourceManager.getResource(filePath);
 		Assert.isNull(resourceManager,"the ant config file ["+filePath+"] is not exists!");
 		if(filePath.endsWith(".yc")) {
 			return build(resourceManager.getInputStream(),CONF);

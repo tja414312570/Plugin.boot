@@ -6,33 +6,33 @@
 ###################### plugin
 plugins:[
 		## interface
-		"com.yanan.frame.servlets.response.MethodAnnotationType",
-		"com.yanan.frame.servlets.parameter.ParameterAnnotationType",
-		com.yanan.frame.servlets.response.ResponseTypeSupportAnnotation,
+		"com.yanan.framework.servlets.response.MethodAnnotationType",
+		"com.yanan.framework.servlets.parameter.ParameterAnnotationType",
+		com.yanan.framework.servlets.response.ResponseTypeSupportAnnotation,
 		## dispatcher
 		{ ##Restful调配器 @RequestMapping @GetMapping @PostMapping @DeleteMapping @RequestParam @RequestPath
-			class:com.yanan.frame.servlets.RestfulDispatcher,
+			class:com.yanan.framework.servlets.RestfulDispatcher,
 			priority:0,
 			signlton:true,
 			attribute:RESTFUL_STYLE,
-			service:"javax.servlet.Servlet,com.yanan.frame.servlets.ServletDispatcher"
+			service:"javax.servlet.Servlet,com.yanan.framework.servlets.ServletDispatcher"
 		},
 		## 响应工具
-		com.yanan.frame.servlets.response.FileResponseHandler,
-		com.yanan.frame.servlets.response.ForwardResponseHandler,
-		com.yanan.frame.servlets.response.JsonResponseHandler,
-		com.yanan.frame.servlets.response.RedirectResponseHandler,
-		com.yanan.frame.servlets.response.ResponseStatusHandler,
+		com.yanan.framework.servlets.response.FileResponseHandler,
+		com.yanan.framework.servlets.response.ForwardResponseHandler,
+		com.yanan.framework.servlets.response.JsonResponseHandler,
+		com.yanan.framework.servlets.response.RedirectResponseHandler,
+		com.yanan.framework.servlets.response.ResponseStatusHandler,
 		## 异常响应工具
-		com.yanan.frame.servlets.exception.ServletExceptionHandler,
-		com.yanan.frame.servlets.exception.DefaultExceptionHandler,
+		com.yanan.framework.servlets.exception.ServletExceptionHandler,
+		com.yanan.framework.servlets.exception.DefaultExceptionHandler,
 		## 参数验证工具
-		com.yanan.frame.servlets.validator.DefaultParameterValitationHandler,
+		com.yanan.framework.servlets.validator.DefaultParameterValitationHandler,
 		## 默认参数注入工具
-		com.yanan.frame.servlets.parameter.DefaultParameterHandler,
+		com.yanan.framework.servlets.parameter.DefaultParameterHandler,
 		## 默认参数注解类型
-		com.yanan.frame.servlets.parameter.RestfulParameter,
-		com.yanan.frame.servlets.session.parameter.TokenParameterHandler
+		com.yanan.framework.servlets.parameter.RestfulParameter,
+		com.yanan.framework.servlets.session.parameter.TokenParameterHandler
 	]
 MVC:{
 	SERVER:{
@@ -64,7 +64,7 @@ MVC:{
 	##ScanPackage:[com.yanan]
 },
 SecurityFilter:{
-	x-frame-options:true,
+	x-framework-options:true,
 	xss-wrapper:{"/**":true}
 	},
 Token:{

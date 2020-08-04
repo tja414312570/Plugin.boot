@@ -1,7 +1,7 @@
 package com.yanan.framework.boot;
 
-import com.yanan.frame.plugin.Environment;
-import com.yanan.frame.plugin.annotations.Service;
+import com.yanan.framework.plugin.Environment;
+import com.yanan.framework.plugin.annotations.Service;
 
 @Service
 @FunctionalInterface

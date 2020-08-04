@@ -2,13 +2,13 @@ package com.yanan.billing.model;
 
 import javax.validation.constraints.NotNull;
 
-import com.yanan.frame.jdb.annotation.Column;
-import com.yanan.frame.jdb.annotation.Tab;
-import com.yanan.frame.servlets.parameter.HTTP.DELETE;
-import com.yanan.frame.servlets.parameter.HTTP.POST;
-import com.yanan.frame.servlets.parameter.HTTP.PUT;
-import com.yanan.frame.servlets.parameter.annotations.Date;
-import com.yanan.frame.servlets.parameter.annotations.UUID;
+import com.yanan.framework.jdb.annotation.Column;
+import com.yanan.framework.jdb.annotation.Tab;
+import com.yanan.framework.webmvc.parameter.HTTP.DELETE;
+import com.yanan.framework.webmvc.parameter.HTTP.POST;
+import com.yanan.framework.webmvc.parameter.HTTP.PUT;
+import com.yanan.framework.webmvc.parameter.annotations.Date;
+import com.yanan.framework.webmvc.parameter.annotations.UUID;
 
 /**
  * 统计信息数据表

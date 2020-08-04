@@ -14,9 +14,10 @@ import org.slf4j.LoggerFactory;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import com.yanan.frame.plugin.Environment;
-import com.yanan.frame.plugin.PlugsFactory;
-import com.yanan.utils.resource.AbstractResourceEntry;
+import com.yanan.framework.plugin.Environment;
+import com.yanan.framework.plugin.PlugsFactory;
+import com.yanan.framework.resource.ResourceLoaderException;
+import com.yanan.utils.resource.Resource;
 import com.yanan.utils.resource.ResourceManager;
 import com.yanan.utils.string.StringUtil;
 
@@ -124,7 +125,7 @@ public class PluginBootServer {
 			String[] argArray = arg.split("=");
 			environment.setVariable(argArray[0],argArray.length>1? argArray[1]:null);
 		}
-		AbstractResourceEntry resource;
+		Resource resource;
 		String disableConfig = environment.getVariable("-boot-disabled");
 		if(StringUtil.isNotBlank(disableConfig)) {
 			environment.removeVariable(disableConfig.split(","));
@@ -144,12 +145,14 @@ public class PluginBootServer {
 			Reader reader = null;
 			try {
 				inputStream = resource.getInputStream();
-				reader = new InputStreamReader(resource.getInputStream());
+				reader = new InputStreamReader(inputStream);
 				Config config = ConfigFactory.parseReader(reader);
 				environment.mergeConfig(config);
 				config.entrySet().forEach(entry->{
 					environment.setVariable(entry.getKey(), entry.getValue().unwrapped());
 				});;
+			} catch (IOException e) {
+				throw new ResourceLoaderException(e);
 			}finally {
 				if(reader != null)
 					try {

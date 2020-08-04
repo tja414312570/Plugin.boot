@@ -13,9 +13,9 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yanan.frame.plugin.PlugsFactory;
-import com.yanan.frame.plugin.annotations.Register;
-import com.yanan.frame.plugin.autowired.property.Property;
+import com.yanan.framework.plugin.PlugsFactory;
+import com.yanan.framework.plugin.annotations.Register;
+import com.yanan.framework.plugin.autowired.property.Property;
 import com.yanan.utils.string.StringUtil;
 
 @Register(signlTon=true)
