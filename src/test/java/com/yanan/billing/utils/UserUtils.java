@@ -8,7 +8,7 @@ import com.yanan.framework.jdb.DBInterface.LOGIC_STATUS;
 import com.yanan.framework.jdb.operate.Insert;
 import com.yanan.framework.plugin.annotations.Register;
 import com.yanan.framework.plugin.autowired.property.Property;
-import com.yanan.framework.webmvc.session.Token;
+import com.yanan.framework.token.Token;
 
 @Register
 public class UserUtils {
@@ -19,7 +19,7 @@ public class UserUtils {
 		return (now.getTime() - diffDate.getTime())/1000 < tokenAvailableTimes;
 	}
 	public String recodeToken(UserAccountModel user) {
-		String tokenId = Token.getToken().getTokenId();
+		String tokenId = Token.getToken().getId();
 		UserTokenModel userTokenModel = new UserTokenModel();
 		userTokenModel.setCreateTime(new Date());
 		userTokenModel.setStatus(LOGIC_STATUS.NORMAL);

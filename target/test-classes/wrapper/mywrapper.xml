@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <wrapper namespace="testSql" database="yanan_Account">
 	<select id="query" resultType="map">
-		SELECT name FROM student
+		SELECT * FROM student
 		<trim prefix = "where" prefixoverride="and or" suffix="" suffixoverride="and or">
 			<if test="id != null and id > 0">id = #{id}</if>
 			and
-			<if test = 'name!=null'>name like '%'||#{name}||'%'</if>
+			<if test = 'name!=null'>name like CONCAT('%',#{name},'%' )</if>
 		</trim>
-		<if test="id == null">id = 0</if>
 			
 	</select>
 	<select id="query1" resultType="map">

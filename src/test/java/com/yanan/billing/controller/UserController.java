@@ -14,13 +14,13 @@ import com.yanan.framework.jdb.operate.Insert;
 import com.yanan.framework.jdb.operate.Query;
 import com.yanan.framework.plugin.annotations.Service;
 import com.yanan.framework.plugin.autowired.exception.Error;
+import com.yanan.framework.token.Token;
 import com.yanan.framework.webmvc.annotations.Groups;
 import com.yanan.framework.webmvc.annotations.RequestMapping;
 import com.yanan.framework.webmvc.parameter.HTTP.POST;
 import com.yanan.framework.webmvc.parameter.annotations.RequestBody;
 import com.yanan.framework.webmvc.parameter.annotations.RequestParam;
 import com.yanan.framework.webmvc.response.annotations.ResponseJson;
-import com.yanan.framework.webmvc.session.Token;
 import com.yanan.framework.webmvc.validator.annotations.Length;
 
 /**
@@ -44,7 +44,7 @@ public class UserController {
 	@ResponseJson
 	@RequestMapping("/token")
 	public BaseAppResult validToken(@NotNull(message="令牌不能为空") @RequestParam("token") String token){
-		System.out.println(Token.getToken().getTokenId());
+		System.out.println(Token.getToken().getId());
 		Query query = new Query(UserTokenModel.class);
 		query.addColumnCondition("token", token);
 		query.addColumnCondition("status", LOGIC_STATUS.NORMAL);
@@ -59,7 +59,7 @@ public class UserController {
 				return BaseAppResult.failed(-1, "未登录");
 			}
 			Token.getToken().set(UserAccountModel.class,userAccountModel);
-			Token.getToken().setRoles(Roles.USER);
+			Token.getToken().addRole(Roles.USER);
 			return BaseAppResult.success(userTokenModel.getUser());
 		}
 	}
@@ -92,7 +92,7 @@ public class UserController {
 			Insert insert = new Insert(user);
 			if(insert.insert()){
 				Token.getToken().set(UserAccountModel.class,user);
-				Token.getToken().setRoles(Roles.USER);
+				Token.getToken().addRole(Roles.USER);
 				return BaseAppResult.success("欢迎您登录!",userUtils.recodeToken(user));
 			}else{
 				return BaseAppResult.failed("服务器繁忙，请稍后再试！");
@@ -102,7 +102,7 @@ public class UserController {
 				return BaseAppResult.failed(2,"账号已被禁用，详情请联系客服！");
 			}
 			Token.getToken().set(UserAccountModel.class,userAccountModel);
-			Token.getToken().setRoles(Roles.USER);
+			Token.getToken().addRole(Roles.USER);
 			return BaseAppResult.success("欢迎您登录!",userUtils.recodeToken(userAccountModel));
 		}
 	}

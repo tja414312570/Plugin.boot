@@ -33,13 +33,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yanan.framework.boot.EnvironmentBoot;
+import com.yanan.framework.boot.StandEnvironmentBoot;
 import com.yanan.framework.plugin.Environment;
 import com.yanan.framework.plugin.PlugsFactory;
 import com.yanan.framework.plugin.annotations.Register;
+import com.yanan.framework.token.web.TokenContextInit;
+import com.yanan.framework.token.web.TokenFilter;
 import com.yanan.framework.webmvc.CoreDispatcher;
 import com.yanan.framework.webmvc.ServletContextInit;
-import com.yanan.framework.webmvc.session.TokenContextInit;
-import com.yanan.framework.webmvc.session.filter.TokenFilter;
 import com.yanan.utils.reflect.AppClassLoader;
 import com.yanan.utils.reflect.ReflectUtils;
 import com.yanan.utils.resource.ResourceManager;
@@ -52,7 +53,7 @@ import com.yanan.utils.string.StringUtil;
  *
  */
 @Register
-public class WebEnvironmentBoot implements EnvironmentBoot{
+public class WebEnvironmentBoot extends StandEnvironmentBoot implements EnvironmentBoot{
 	static final String WEB_ENVIROMNET_BOOT_PATH = "com.yanan.framework.boot.web.WebEnvironmentBoot";
 	private static final String WEB_ENVIROMNET_BOOT_CLASS = "-boot-web-environment-class";
 	private static final String WEB_ENVIROMNET_BOOT_LOADER = "-boot-web-environment-loader";
@@ -228,7 +229,7 @@ public class WebEnvironmentBoot implements EnvironmentBoot{
 			PlugsFactory.getInstance().addScanPath(pluginBoot.contextClass());
 			log.info("Plugin Application Context Path "+Arrays.toString(ResourceManager.getClassPath(pluginBoot.contextClass())));
 		}
-		PlugsFactory.init("pugin.yc");
+		PlugsFactory.init();
 	}
 	/**
 	 * 设置App的基本路径
@@ -250,7 +251,7 @@ public class WebEnvironmentBoot implements EnvironmentBoot{
 					tomcat.addWebapp(webApp.contextPath(), webApp.docBase());
 					log.info("Web Application, context path:"+webApp.contextPath()+", doc base:"+webApp.docBase());
 				}
-			}else {
+			}else { 
 				WebApp webApp = getDefaultConfigure(WebApp.class);
 				tomcat.addWebapp(webApp.contextPath(), webApp.docBase());
 				log.info("Web Application, context path:"+webApp.contextPath()+", doc base:"+webApp.docBase());
@@ -263,7 +264,7 @@ public class WebEnvironmentBoot implements EnvironmentBoot{
 			}
 		}
 	}
-	/**
+	/**  
 	 * 获取默认配置
 	 * @param annotationClass
 	 * @return
@@ -282,6 +283,7 @@ public class WebEnvironmentBoot implements EnvironmentBoot{
 
 	public void start(Environment environment) {
 		log.info("plugin boot environment in web [tomcat]");
+		super.start(environment);
 		Class<?> mainClass = environment.getVariable(Environment.MAIN_CLASS);
 		WebPluginBoot pluginBoot = mainClass.getAnnotation(WebPluginBoot.class);
 		if (pluginBoot == null)
@@ -289,6 +291,7 @@ public class WebEnvironmentBoot implements EnvironmentBoot{
 		addPluginContext(mainClass, pluginBoot);
 		//初始化Tomcat
 		initTomcat(pluginBoot,mainClass);
+		log.info("Web Application run with :"+tomcat.getConnector().getDomain()+" "+tomcat.getHost().getName()+":"+tomcat.getConnector().getPort());
 		//设置基本路径
 		setHostAppBase(pluginBoot);
 		//配置ServletContext的监听
@@ -314,9 +317,13 @@ public class WebEnvironmentBoot implements EnvironmentBoot{
 //					new PluginAppincationContext().contextInitialized(sce);
 					new ServletContextInit().contextInitialized(sce);
 					new TokenContextInit().contextInitialized(sce);
-					List<ServletContextListener> lists = PlugsFactory.getPluginsInstanceList(ServletContextListener.class);
-					for(ServletContextListener listener : lists) {
-						listener.contextInitialized(sce);
+					try {
+						List<ServletContextListener> lists = PlugsFactory.getPluginsInstanceList(ServletContextListener.class);
+						for(ServletContextListener listener : lists) {
+							listener.contextInitialized(sce);
+						}
+					} catch (Exception e) {
+						log.debug("none any servlet context listener register found ! {}",e.getMessage());
 					}
 					b = true;
 				}
@@ -336,6 +343,8 @@ public class WebEnvironmentBoot implements EnvironmentBoot{
 			tomcat.init();
 			tomcat.start();
 		} catch (LifecycleException e) {
+			e.printStackTrace();
+			System.exit(0);
 			new WebPluginBootExcetion("failed to init tomcat;",e);
 		}
 		tomcat.getServer().await();
@@ -368,6 +377,7 @@ public class WebEnvironmentBoot implements EnvironmentBoot{
 
 	@Override
 	public void stop(Environment environment) {
+		super.stop(environment);
 		try {
 			tomcat.stop();
 		} catch (LifecycleException e) {

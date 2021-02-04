@@ -25,7 +25,7 @@ import com.yanan.framework.plugin.event.EventListener;
 @BootArgs(name="-boot-configure",value="boot.yc")
 //@BootArgs(name="-boot-disabled",value="-boot-configure,-environment-boot")
 @Plugin(PluginWiredHandler.class)
-public class PluginBootServerTest2 {
+public class PluginBootServerTest {
 	String contextPath; String docBase;
 	public static void main(String[] args) throws LifecycleException, IOException {
 		Environment.getEnviroment().registEventListener(PlugsFactory.getInstance().getEventSource(), new EventListener<PluginEvent>() {

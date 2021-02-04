@@ -1,25 +1,33 @@
 package com.yanan.test;
+import java.util.Map;
+
 import javax.validation.constraints.NotNull;
 
 import org.slf4j.Logger;
 
+import com.yanan.framework.boot.utils.Log;
+import com.yanan.framework.jdb.SqlSession;
 import com.yanan.framework.plugin.annotations.Register;
 import com.yanan.framework.plugin.annotations.Service;
+import com.yanan.framework.token.Token;
+import com.yanan.framework.token.annotation.Authentication;
 import com.yanan.framework.webmvc.annotations.RequestMapping;
 import com.yanan.framework.webmvc.parameter.annotations.RequestParam;
 import com.yanan.framework.webmvc.response.annotations.ResponseJson;
-import com.yanan.framework.webmvc.session.Token;
-import com.yanan.framework.webmvc.session.annotation.Authentication;
 
 @Register
 public class Test {
-	@Service
+	@Log
 	private Logger log;
+	
+	@Service
+	private SqlSession sqlSession;
 	@ResponseJson
 	@RequestMapping("/token")
-	public String test(@RequestParam("token") String token) {
-		log.debug("Token验证："+token+"   "+Token.getToken().getTokenId());
-		return token;
+	public Map<String,Object> test(Token token,@RequestParam Map<String,Object> param) {
+		log.debug("Token验证："+token.getId()+"   "+Token.getToken().getId());
+		log.debug("获得参数:"+param);
+		return sqlSession.selectOne("testSql.query", param);
 	}
 	@Authentication(roles="root")
 	@RequestMapping("/smsCode")

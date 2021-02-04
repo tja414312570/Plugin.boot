@@ -9,9 +9,9 @@ properties:[
 ]
 #模块配置
 includes:[
-	"plugin.yc",
-	"boot.jdb.yc",
-	"boot.mvc.yc",
+	"classpath:plugin.yc",
+	"classpath:boot.jdb.yc",
+	#"classpath:boot.mvc.yc",
 	#"Ant.yc"
 ]
 ##标准引导参数

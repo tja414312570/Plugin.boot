@@ -28,7 +28,6 @@ public class LoggerParameter implements FieldHandler
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			throw new PluginInitException("logger inject failed",e);
 		}
-		System.out.println(field);
 	}
 
 }

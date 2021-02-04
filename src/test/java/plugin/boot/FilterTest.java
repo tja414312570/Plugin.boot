@@ -12,7 +12,7 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebInitParam;
 
 import com.yanan.framework.plugin.annotations.Register;
-@Register
+//@Register
 @WebInitParam(name = "", value = "")
 @WebFilter(filterName = "tokenFilters", urlPatterns = "/*")
 public class FilterTest implements Filter{

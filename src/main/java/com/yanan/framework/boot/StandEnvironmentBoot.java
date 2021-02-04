@@ -26,7 +26,6 @@ import com.yanan.framework.plugin.definition.RegisterDefinition;
 import com.yanan.utils.reflect.TypeToken;
 import com.yanan.utils.reflect.cache.ClassHelper;
 import com.yanan.utils.resource.Resource;
-import com.yanan.utils.resource.Resource;
 import com.yanan.utils.resource.ResourceManager;
 import com.yanan.utils.resource.ResourceNotFoundException;
 
@@ -77,9 +76,8 @@ public class StandEnvironmentBoot implements EnvironmentBoot{
 			if(ares == null)
 				throw new ResourceNotFoundException("colud not found resource at "+includePath);
 			for(Resource resourceEntry : ares) {
-				System.out.println("资源:"+resourceEntry);
 				ResourceDecoder<Resource> decoder = PlugsFactory.getPluginsInstanceByAttributeStrict(new TypeToken<ResourceDecoder<Resource>>() {}.getTypeClass()
-						, Resource.class.getSimpleName());
+						, resourceEntry.getClass().getSimpleName());
 				decoder.decodeResource(PlugsFactory.getInstance(),resourceEntry);
 				PlugsFactory.getInstance().refresh();
 			}
