@@ -60,10 +60,15 @@ public class NacosConfigRuntime {
 			configService.addListener(dataId, groupId, new Listener() {
 				@Override
 				public void receiveConfigInfo(String configInfo) {
-					logger.debug("config ["+groupId+"]-["+dataId+"] chanaged");
-					long now = System.currentTimeMillis();
-					function.execute(groupId,dataId,configInfo);
-					logger.debug("config ["+groupId+"]-["+dataId+"] loaded at ["+(System.currentTimeMillis()-now)+"ms]");
+					try {
+						logger.debug("config ["+groupId+"]-["+dataId+"] chanaged");
+						long now = System.currentTimeMillis();
+						function.execute(groupId,dataId,configInfo);
+						logger.debug("config ["+groupId+"]-["+dataId+"] loaded at ["+(System.currentTimeMillis()-now)+"ms]");
+					}catch(Throwable e) {
+						logger.error("failed to update config at ["+groupId+"]-["+dataId+"] !",e);
+					}
+					
 				}
 				@Override
 				public Executor getExecutor() {

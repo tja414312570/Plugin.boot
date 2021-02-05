@@ -15,7 +15,7 @@ import com.yanan.framework.webmvc.annotations.RequestMapping;
 import com.yanan.framework.webmvc.parameter.annotations.RequestParam;
 import com.yanan.framework.webmvc.response.annotations.ResponseJson;
 
-@Register
+@Register(signlTon = false)
 public class Test {
 	@Log
 	private Logger log;

@@ -17,6 +17,7 @@ import com.typesafe.config.ConfigFactory;
 import com.yanan.framework.plugin.Environment;
 import com.yanan.framework.plugin.autowired.property.PropertyManager;
 import com.yanan.framework.boot.cloud.AbstractUpdateabledEnvironmentBoot;
+import com.yanan.utils.resource.ResourceNotFoundException;
 import com.yanan.utils.string.StringUtil;
 
 /**
@@ -47,6 +48,9 @@ public class CloudEnvironmentBoot extends AbstractUpdateabledEnvironmentBoot{
 			Config propertiesConfig = nacosCloudConfig.getConfig(PROPERTIES_TOKEN);
 			if(propertiesConfig != null) {
 				loadFromCloud(propertiesConfig,(groupId,dataId,cloudContent)->{
+					if(cloudContent == null) {
+						throw new ResourceNotFoundException("nacos resource ["+groupId+"]-["+dataId+"] could not found");
+					}
 					log.debug("loaded properties ["+groupId+"]-["+dataId+"]:"+cloudContent.length());
 					Reader reader = new StringReader(cloudContent);
 					try {
