@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.yanan.framework.boot.web.WebEnvironmentBoot;
 import com.yanan.framework.plugin.Environment;
 import com.yanan.framework.plugin.PlugsFactory;
 import com.yanan.framework.resource.ResourceLoaderException;
@@ -99,9 +100,11 @@ public class PluginBootServer {
 			}
 		}else {
 			try {
-				enviromentBootClass = Class.forName("com.yanan.framework.boot.web.WebEnvironmentBoot");
+				//如果找到plugin.mvc，则说明环境为web环境
+				Class.forName("com.yanan.framework.webmvc.RestfulDispatcher");
+				enviromentBootClass = WebEnvironmentBoot.class;
 			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
+//				e.printStackTrace();
 				enviromentBootClass = StandEnvironmentBoot.class;
 			}
 		}
