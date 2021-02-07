@@ -14,9 +14,9 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.yanan.framework.boot.cloud.AbstractUpdateabledEnvironmentBoot;
 import com.yanan.framework.plugin.Environment;
 import com.yanan.framework.plugin.autowired.property.PropertyManager;
-import com.yanan.framework.boot.cloud.AbstractUpdateabledEnvironmentBoot;
 import com.yanan.utils.resource.ResourceNotFoundException;
 import com.yanan.utils.string.StringUtil;
 
@@ -58,6 +58,7 @@ public class CloudEnvironmentBoot extends AbstractUpdateabledEnvironmentBoot{
 						properties.load(reader);
 						Config cloudPropertiesConfig = ConfigFactory.parseProperties(properties);
 						environment.getConfigure().merge(cloudPropertiesConfig);
+//						environment.mergeConfig(cloudPropertiesConfig);
 						PropertyManager.getInstance().put(properties);
 						checkWhetherUpdateConfig(groupId, dataId);
 					} catch (IOException e) {

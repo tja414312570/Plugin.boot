@@ -1,5 +1,6 @@
 package com.yanan.framework.boot.cloud;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -9,13 +10,13 @@ import com.typesafe.config.ConfigList;
 import com.typesafe.config.ConfigValue;
 import com.typesafe.config.ConfigValueType;
 import com.typesafe.config.impl.SimpleConfigObject;
+import com.yanan.framework.boot.PluginBootException;
+import com.yanan.framework.boot.StandEnvironmentBoot;
 import com.yanan.framework.plugin.Environment;
 import com.yanan.framework.plugin.Plugin;
 import com.yanan.framework.plugin.PlugsFactory;
 import com.yanan.framework.plugin.builder.PluginDefinitionBuilderFactory;
 import com.yanan.framework.plugin.definition.RegisterDefinition;
-import com.yanan.framework.boot.PluginBootException;
-import com.yanan.framework.boot.StandEnvironmentBoot;
 
 /**
  * 抽象可更新引导配置引导环境
@@ -27,7 +28,7 @@ public class AbstractUpdateabledEnvironmentBoot extends StandEnvironmentBoot{
 	protected Environment environment;
 	public AbstractUpdateabledEnvironmentBoot() {
 		environment = Environment.getEnviroment();
-		loadedRegisterList = new HashSet<>();
+		loadedRegisterList = Collections.synchronizedSet(new HashSet<>());
 	}
 	public void tryDeducePluginDefinitionAndAddDefinition(ConfigValue configValue) {
 		try {
@@ -69,6 +70,6 @@ public class AbstractUpdateabledEnvironmentBoot extends StandEnvironmentBoot{
 				PlugsFactory.getInstance().refresh();
 			});
 		}
-		environment.getConfigure().merge(config);
+		environment.mergeConfig(config);
 	}
 }

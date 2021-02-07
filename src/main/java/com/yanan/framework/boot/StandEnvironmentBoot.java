@@ -99,7 +99,7 @@ public class StandEnvironmentBoot implements EnvironmentBoot{
 					log.info("loaded properties from "+resourceEntry.getPath());
 					properties.load(resourceEntry.getInputStream());
 					Config propertiesConfig = ConfigFactory.parseProperties(properties);
-					environment.getConfigure().merge(propertiesConfig);
+					environment.mergeConfig(propertiesConfig);
 					PropertyManager.getInstance().put(properties);
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -162,7 +162,7 @@ public class StandEnvironmentBoot implements EnvironmentBoot{
 				PlugsFactory.getInstance().refresh();
 			});
 		}
-		environment.getConfigure().merge(config);
+		environment.mergeConfig(config);
 	}
 	@Override
 	public void start(Environment environment) {
