@@ -9,25 +9,36 @@ import com.yanan.framework.boot.utils.Log;
 import com.yanan.framework.jdb.SqlSession;
 import com.yanan.framework.plugin.annotations.Register;
 import com.yanan.framework.plugin.annotations.Service;
+import com.yanan.framework.plugin.autowired.enviroment.Variable;
+import com.yanan.framework.resource.DefaultResourceLoader;
 import com.yanan.framework.token.Token;
 import com.yanan.framework.token.annotation.Authentication;
 import com.yanan.framework.webmvc.annotations.RequestMapping;
+import com.yanan.framework.webmvc.parameter.annotations.PathVariable;
 import com.yanan.framework.webmvc.parameter.annotations.RequestParam;
 import com.yanan.framework.webmvc.response.annotations.ResponseJson;
+import com.yanan.utils.resource.Resource;
 
-@Register(signlTon = false)
+@Register
 public class Test {
 	@Log
 	private Logger log;
 	
+	@Variable("jdb.password")
+	private String test;
 	@Service
 	private SqlSession sqlSession;
 	@ResponseJson
-	@RequestMapping("/token")
-	public Map<String,Object> test(Token token,@RequestParam Map<String,Object> param) {
+	@RequestMapping("/token/{last*}/{first*}")
+	public Map<String,Object> test(Token token,@RequestParam Map<String,Object> param,
+			@PathVariable("first") String first,
+			@PathVariable("last") String last) {
+		Resource resource = new DefaultResourceLoader().getResource("nacos:DEFAULT_GROUP/boot-jdb");
+		System.out.println(test);
+		log.debug("first:"+first+",last:"+last);
 		log.debug("Token验证："+token.getId()+"   "+Token.getToken().getId());
 		log.debug("获得参数:"+param);
-		return sqlSession.selectOne("testSql.query", param);
+		return null;//sqlSession.selectOne("testSql.query", param);
 	}
 	@Authentication(roles="root")
 	@RequestMapping("/smsCode")

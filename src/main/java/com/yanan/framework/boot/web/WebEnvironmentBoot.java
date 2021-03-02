@@ -72,7 +72,6 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
 		if(PlugsFactory.getPlugin(Filter.class) != null) {
 			List<Filter> filters = PlugsFactory.getPluginsInstanceList(Filter.class);
 			for(Filter filter : filters) {
-				System.out.println(filter);
 				addFilter(ctx, filter,PlugsFactory.getPluginsHandler(filter).getRegisterDefinition().getRegisterClass());
 			}
 		}
@@ -351,8 +350,6 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
 		
 	}
 	public void started(Environment environment) {
-		System.out.println(PlugsFactory.class.hashCode());
-		System.out.println(this.getClass().hashCode());
 		//隔离环境，使用新的加载器
 		AppClassLoader appClassLoader = new AppClassLoader();
 		appClassLoader.addShardClass(Environment.class.getName());

@@ -34,7 +34,6 @@ public class NacosConfigureFactory {
 		return properties;
 	}
 	public static Properties build(String filePath) throws IOException {
-		System.out.println(filePath);
 		Assert.isNull(filePath, "nacos config name is null");
 		Resource resourceManager =ResourceManager.getResource(filePath);
 		Assert.isNull(resourceManager,"the ant config file ["+filePath+"] is not exists!");
