@@ -8,10 +8,7 @@ import java.util.UUID;
 import org.apache.commons.codec.binary.StringUtils;
 
 import com.yanan.utils.ByteUtils;
-import com.yanan.utils.UnsafeUtils;
 import com.yanan.utils.resource.ResourceManager;
-
-import sun.misc.Unsafe;
 
 public class HashFile {
 	private HashIndex hashIndex;
@@ -28,7 +25,7 @@ public class HashFile {
 	//index表的总大小
 	private int max_index_len = 1024*1024*1024-1;
 	//list表的每个数据的宽度valuePos==>keyLen==>valueLen==>nextNodePos==>标志位
-	private int node_bytes_len = 1+8+8+4+8;
+	private int node_bytes_len = 1+8+4+4+8;
 	public HashFile() throws IOException {
 		System.out.println(Integer.toBinaryString(max_index_len));
 		this.tabName = UUID.randomUUID().toString();
@@ -103,9 +100,9 @@ public class HashFile {
 			//值的指针
 			long valuePos = ByteUtils.bytesToLong(bytes,1);
 			//值的总长度
-			long valueLength = ByteUtils.bytesToLong(bytes,9);
+			int valueLength = ByteUtils.bytesToInt(bytes,9);
 			//值的key的长度
-			int keyLength = ByteUtils.bytesToInt(bytes,17);
+			int keyLength = ByteUtils.bytesToInt(bytes,13);
 			//下一个hash值相同的指针
 			HashNode node = new HashNode(this);
 			node.setKeyLength(keyLength);
@@ -113,7 +110,7 @@ public class HashFile {
 			node.setMark(mark);
 			node.setValueLength(valueLength);
 			node.setValuePos(valuePos);
-			nodePos = ByteUtils.bytesToLong(bytes,21) - 1;
+			nodePos = ByteUtils.bytesToLong(bytes,17) - 1;
 			node.setNextPos(nodePos);
 			if(key != null ) {
 				String nodeKey = getNodeKey(node);
@@ -130,13 +127,17 @@ public class HashFile {
 		}
 		return hashNode;
 	}
-
-	private HashNode getNodeValue(HashNode current) {
-		return null;
+	private byte[] getValue(long pos,int length) throws IOException {
+		this.valueAccess.seek(pos);
+		byte[] bytes = new byte[length];
+		this.valueAccess.read(bytes);
+		return bytes;
 	}
-	private String getNodeKey(HashNode current) {
-		// TODO Auto-generated method stub
-		return null;
+	private byte[] getNodeValue(HashNode node) throws IOException {
+		return getValue(node.getValuePos(),node.getValueLength());
+	}
+	private String getNodeKey(HashNode node) throws IOException {
+		return new String(getValue(node.getValuePos(),node.getKeyLength()));
 	}
 	private long getNodePos(long hashCode) throws IOException {
 		long posIndex = getPosIndex(hashCode);

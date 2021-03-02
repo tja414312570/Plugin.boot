@@ -8,7 +8,7 @@ public class HashNode {
 	// 值的指针
 	private long valuePos;
 	// 值的总长度
-	private long valueLength;
+	private int valueLength;
 	// 值的key的长度
 	private int keyLength;
 	// 下一个hash值相同的指针
@@ -32,11 +32,11 @@ public class HashNode {
 		this.valuePos = valuePos;
 	}
 
-	public long getValueLength() {
+	public int getValueLength() {
 		return valueLength;
 	}
 
-	public void setValueLength(long valueLength) {
+	public void setValueLength(int valueLength) {
 		this.valueLength = valueLength;
 	}
 
