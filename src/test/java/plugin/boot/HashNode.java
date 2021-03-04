@@ -4,7 +4,7 @@ public class HashNode {
 	private HashFile hashFile;
 	private HashNode next;
 	private HashNode before;
-	private int mark;
+	private long mark;
 	// 值的指针
 	private long valuePos;
 	// 值的总长度
@@ -15,12 +15,14 @@ public class HashNode {
 	private long nodePos;
 	// 下一个节点指针
 	private long nextPos;
+	
+	private long hashCode;
 
-	public int getMark() {
+	public long getMark() {
 		return mark;
 	}
 
-	public void setMark(int mark) {
+	public void setMark(long mark) {
 		this.mark = mark;
 	}
 
@@ -85,7 +87,7 @@ public class HashNode {
 	public String toString() {
 		return "HashNode [hashFile=" + hashFile + ", next=" + next + ", before=" + before + ", mark=" + mark
 				+ ", valuePos=" + valuePos + ", valueLength=" + valueLength + ", keyLength=" + keyLength + ", nodePos="
-				+ nodePos + ", nextPos=" + nextPos + "]";
+				+ nodePos + ", nextPos=" + nextPos + ", hashCode=" + hashCode + "]";
 	}
 
 	public HashNode getBefore() {
@@ -106,6 +108,14 @@ public class HashNode {
 
 	public void setNextPos(long nextPos) {
 		this.nextPos = nextPos;
+	}
+
+	public long getHashCode() {
+		return hashCode;
+	}
+
+	public void setHashCode(long hashCode) {
+		this.hashCode = hashCode;
 	}
 
 }
