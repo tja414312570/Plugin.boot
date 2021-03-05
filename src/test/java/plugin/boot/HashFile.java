@@ -73,40 +73,20 @@ public class HashFile {
 //		}
 //		return bytes;
 //	}
-	private static ThreadLocal<byte[][]> bytePools = new ThreadLocal<byte[][]>() {
+	private final static ThreadLocal<byte[][]> bytePools = new ThreadLocal<byte[][]>() {
 		protected byte[][] initialValue() {
 			byte[][] init = new byte[128][];
-			
-//			private static final int BYTES_SIZE_POS = 8;
-//			private static final int BYTES_SIZE_LEN = 4;
-//			
-//			
-//			private final static int BYTE_KEY_INDEX = 0;
-//			private final static int BYTE_KEY_NODE = 1;
-//			private static final int BYTE_KEY_NODE_VAL_LEN = 2;
-//			private static final int BYTE_KEY_NODE_KEY_LEN = 3;
-//			private static final byte[] NULL_POS_BYTES = new byte[] {0,0,0,0,0,0,0,0};
-//			//index表的总大小
-//			private int MAX_INDEX_LEN = 1024*1024*1024-1;
-//			//list表的每个数据的宽度valuePos==>keyLen==>valueLen==>nextNodePos==>标志位
-//			private static final int NODE_BYTES_LEN = 1+8+4+4+8;
-//			private static final int INDEX_BYTES_LEN = 16;
 			for(int i = 0;i<4;i++) {
 				init[(4<<i)  ] = new byte[BYTES_SIZE_LEN];
 				init[(4<<i) +1 ] = new byte[BYTES_SIZE_POS];
 				init[(4<<i) +2 ] = new byte[INDEX_BYTES_LEN];
 				init[(4<<i) +3 ] = new byte[NODE_BYTES_LEN];
 			}
-//			init[64] = new byte[BYTES_SIZE_LEN];
-//			init[65] = new byte[BYTES_SIZE_POS];
-//			init[66] = new byte[INDEX_BYTES_LEN];
-//			init[67] = new byte[NODE_BYTES_LEN];
 			return init;
 		};
 	};
-	public byte[] getThreadBytes(int hash,int width) {
-		int pos =( 4 <<hash);
-//		System.out.println(pos);
+	private final byte[] getThreadBytes(int hash,int width) {
+		int pos = 4 << hash;
 		byte[][] init = bytePools.get();
 		switch (width) {
 		case BYTES_SIZE_LEN:
@@ -137,11 +117,7 @@ public class HashFile {
 		
 		this.indexByteBuffer = indexAccess.getChannel()
                 .map(FileChannel.MapMode.READ_WRITE, 0, indexAccess.length());
-//		this.valueByteBuffer = valueAccess.getChannel()
-//                .map(FileChannel.MapMode.READ_WRITE, 0, indexAccess.length());
 		this.valueByteBuffer = new BigMappedByteBuffer(valueAccess);
-//		this.nodeByteBuffer = nodeAccess.getChannel()
-//                .map(FileChannel.MapMode.READ_WRITE, 0, Integer.MAX_VALUE>>1);
 		this.nodeByteBuffer = new BigMappedByteBuffer(nodeAccess);
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			this.indexFile.delete();
