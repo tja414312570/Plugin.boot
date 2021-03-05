@@ -16,10 +16,10 @@ public class TestHash {
 		HashFile hashFile = new HashFile();
 //		Map<String,String> hashFile = new HashMap<String,String>();
 		long t = System.currentTimeMillis();
-		hashFile.put("key", "hello world!");
+		hashFile.put("key", "hello world!".getBytes());
 		System.out.println(new String(hashFile.get("key")));
-		hashFile.put("key", "hello world!s");
-		hashFile.put("kes", "hello kes");
+		hashFile.put("key", "hello world!s".getBytes());
+		hashFile.put("kes", "hello kes".getBytes());
 		System.out.println(new String(hashFile.get("key")));
 		System.out.println(new String(hashFile.get("kes")));
 		hashFile.remove("key");
@@ -32,7 +32,7 @@ public class TestHash {
 		System.out.println(result);
 		result = hashFile.get("key");
 		System.out.println(result);
-		hashFile.put("key", "hello world!ssssssss");
+		hashFile.put("key", "hello world!ssssssss".getBytes());
 		result = hashFile.get("key");
 		System.out.println(new String(result));
 //		System.out.println(hashFile.get("key-1"));
