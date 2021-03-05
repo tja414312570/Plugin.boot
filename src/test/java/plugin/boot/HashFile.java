@@ -5,9 +5,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Arrays;
 import java.util.UUID;
-
-import org.apache.commons.codec.binary.StringUtils;
 
 import com.yanan.utils.ByteUtils;
 
@@ -20,25 +19,119 @@ public class HashFile {
 	private RandomAccessFile valueAccess;
 	private RandomAccessFile nodeAccess;
 	//index表每个数据的宽度
-	private int index_bytes_len = 16;
+	private static final int BYTES_SIZE_POS = 8;
+	private static final int BYTES_SIZE_LEN = 4;
+	
+	
+	private final static int BYTE_KEY_INDEX = 0;
+	private final static int BYTE_KEY_NODE = 1;
+	private static final int BYTE_KEY_NODE_VAL_LEN = 2;
+	private static final int BYTE_KEY_NODE_KEY_LEN = 3;
+	private static final byte[] NULL_POS_BYTES = {0,0,0,0,0,0,0,0};
 	//index表的总大小
-	private int max_index_len = 1024*1024*1024-1;
+	private int MAX_INDEX_LEN = 1024*1024*1024-1;
 	//list表的每个数据的宽度valuePos==>keyLen==>valueLen==>nextNodePos==>标志位
-	private int node_bytes_len = 1+8+4+4+8;
+	private static final int NODE_BYTES_LEN = 1+8+4+4+8;
+	private static final int INDEX_BYTES_LEN = 16;
+	private static final byte[] NULL_POINTER_BYTES = {0,
+													0,0,0,0,0,0,0,0,
+													0,0,0,0,
+													0,0,0,0,
+													0,0,0,0,0,0,0,0};
 	private String tempDir = "/Users/yanan/Public";//ResourceManager.classPath();//
 	private long valuePos = 1;
 	private long nodePos = 1;
 	private MappedByteBuffer indexByteBuffer;
-	private MappedByteBuffer nodeByteBuffer;
+	private BigMappedByteBuffer nodeByteBuffer;
 	private BigMappedByteBuffer valueByteBuffer;
+//	private static ThreadLocal<byte[][]> bytePools = new ThreadLocal<>();
+//	public byte[] getThreadBytes(int hash,int width) {
+//		hash= hash<<8 | width;
+//		byte[][] bytes = bytePools.get();
+//		if(bytes==null) {
+//			bytes = new byte[1 << 16-1][];
+//		}
+//		byte[] bytes2 = bytes[hash];
+//		if(bytes2==null) {
+//			bytes2 = new byte[width];
+//			bytes[hash] = bytes2;
+//		}
+//		return bytes2;
+//	}
+//	private static ThreadLocal<Map<Integer,byte[]>> bytePools = new ThreadLocal<>();
+//	public byte[] getThreadBytes(int hash,int width) {
+//		hash= hash<<16 | width;
+//		Map<Integer,byte[]> byteMap = bytePools.get();
+//		if(byteMap == null) {
+//			byteMap = new HashMap<>();
+//			bytePools.set(byteMap);
+//		}
+//		byte[] bytes = byteMap.get(hash);
+//		if(bytes==null) {
+//			bytes = new byte[width];
+//			byteMap.put(hash, bytes);
+//		}
+//		return bytes;
+//	}
+	private static ThreadLocal<byte[][]> bytePools = new ThreadLocal<byte[][]>() {
+		protected byte[][] initialValue() {
+			byte[][] init = new byte[128][];
+			
+//			private static final int BYTES_SIZE_POS = 8;
+//			private static final int BYTES_SIZE_LEN = 4;
+//			
+//			
+//			private final static int BYTE_KEY_INDEX = 0;
+//			private final static int BYTE_KEY_NODE = 1;
+//			private static final int BYTE_KEY_NODE_VAL_LEN = 2;
+//			private static final int BYTE_KEY_NODE_KEY_LEN = 3;
+//			private static final byte[] NULL_POS_BYTES = new byte[] {0,0,0,0,0,0,0,0};
+//			//index表的总大小
+//			private int MAX_INDEX_LEN = 1024*1024*1024-1;
+//			//list表的每个数据的宽度valuePos==>keyLen==>valueLen==>nextNodePos==>标志位
+//			private static final int NODE_BYTES_LEN = 1+8+4+4+8;
+//			private static final int INDEX_BYTES_LEN = 16;
+			for(int i = 0;i<4;i++) {
+				init[(4<<i)  ] = new byte[BYTES_SIZE_LEN];
+				init[(4<<i) +1 ] = new byte[BYTES_SIZE_POS];
+				init[(4<<i) +2 ] = new byte[INDEX_BYTES_LEN];
+				init[(4<<i) +3 ] = new byte[NODE_BYTES_LEN];
+			}
+//			init[64] = new byte[BYTES_SIZE_LEN];
+//			init[65] = new byte[BYTES_SIZE_POS];
+//			init[66] = new byte[INDEX_BYTES_LEN];
+//			init[67] = new byte[NODE_BYTES_LEN];
+			return init;
+		};
+	};
+	public byte[] getThreadBytes(int hash,int width) {
+		int pos =( 4 <<hash);
+//		System.out.println(pos);
+		byte[][] init = bytePools.get();
+		switch (width) {
+		case BYTES_SIZE_LEN:
+			return init[pos];
+		case BYTES_SIZE_POS:
+			return init[pos+1];
+		case INDEX_BYTES_LEN:
+			return init[pos+2];
+		case NODE_BYTES_LEN:
+			return init[pos+3];
+		default:
+			break;
+		}
+		return null;
+	}
 	public HashFile() throws IOException {
-		System.out.println(Integer.toBinaryString(max_index_len/index_bytes_len));
 		this.tabName = UUID.randomUUID().toString();
 		this.indexFile = new File(this.tempDir , this.tabName + ".index");
 		this.valueFile = new File(tempDir, this.tabName + ".value");
 		this.nodeFile = new File(tempDir, this.tabName + ".node");
+		init();
+	}
+	public void init() throws IOException {
 		this.indexAccess = new RandomAccessFile(indexFile, "rw");
-		indexAccess.setLength(max_index_len);
+		indexAccess.setLength(MAX_INDEX_LEN);
 		this.valueAccess = new RandomAccessFile(valueFile, "rw");
 		this.nodeAccess = new RandomAccessFile(nodeFile, "rw");
 		
@@ -47,9 +140,9 @@ public class HashFile {
 //		this.valueByteBuffer = valueAccess.getChannel()
 //                .map(FileChannel.MapMode.READ_WRITE, 0, indexAccess.length());
 		this.valueByteBuffer = new BigMappedByteBuffer(valueAccess);
-		this.nodeByteBuffer = nodeAccess.getChannel()
-                .map(FileChannel.MapMode.READ_WRITE, 0, Integer.MAX_VALUE>>1);
-		
+//		this.nodeByteBuffer = nodeAccess.getChannel()
+//                .map(FileChannel.MapMode.READ_WRITE, 0, Integer.MAX_VALUE>>1);
+		this.nodeByteBuffer = new BigMappedByteBuffer(nodeAccess);
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			this.indexFile.delete();
 			this.valueFile.delete();
@@ -64,67 +157,93 @@ public class HashFile {
 		//获取节点
 		HashNode node = getNode(hash,null);
 		HashNode lastNode = null;
+		byte[] keyBytes = key.getBytes();
 		//节点不存在
 		if(node != null) {
 //			System.out.println(key+"-->"+node);
 			lastNode = node.getLast();
-			while(node.hasNext()) {
-				if(StringUtils.equals(key, getNodeKey(node))) {
-					System.out.println("找到node==>替换");
-					throw new RuntimeException("提换");
+			while(node != null) {
+				if(Arrays.equals(keyBytes, getNodeKeyBytes(node))) {
+					byte[] valueBytes = getValueBytes(value);
+					byte[] bodyBytes = new byte[valueBytes.length+keyBytes.length];
+					System.arraycopy(keyBytes, 0, bodyBytes, 0, keyBytes.length);
+					System.arraycopy(valueBytes, 0, bodyBytes, keyBytes.length, valueBytes.length);
+					int bodyLen = bodyBytes.length;
+					long posValue = writeValue(bodyBytes);
+					byte[] keyLenBytes = getThreadBytes(BYTE_KEY_NODE_KEY_LEN,BYTES_SIZE_LEN);
+					byte[] valueLenBytes = getThreadBytes(BYTE_KEY_NODE_VAL_LEN,BYTES_SIZE_LEN);
+					byte[] nodeBytes = getThreadBytes(BYTE_KEY_NODE,NODE_BYTES_LEN);
+					byte[] valuePosBytes = getThreadBytes(BYTE_KEY_NODE,BYTES_SIZE_POS);
+					ByteUtils.longToBytes(posValue,valuePosBytes);
+					ByteUtils.intToBytes(bodyLen,valueLenBytes);
+					ByteUtils.intToBytes(keyBytes.length,keyLenBytes);
+					getByteBuffer(nodeBytes,node.getNodePos(),nodeByteBuffer);
+					System.arraycopy(valuePosBytes, 0, nodeBytes, 1, 8);
+					System.arraycopy(valueLenBytes, 0, nodeBytes, 9, 4);
+					System.arraycopy(keyLenBytes, 0, nodeBytes, 13, 4);
+					this.nodeByteBuffer.position((int) node.getNodePos());
+					this.nodeByteBuffer.put(nodeBytes);
+					return ;
 //					break;
 				}
 				node = node.nextNode();
 			}
 //			System.out.println("hash冲突："+key+"-->"+getNodeKey(lastNode));
 			byte[] valueBytes = getValueBytes(value);
-			byte[] keyBytes = key.getBytes();
 			byte[] bodyBytes = new byte[valueBytes.length+keyBytes.length];
+//			byte[] bodyBytes = getThreadBytes(this.hashCode(),valueBytes.length+keyBytes.length);
 			System.arraycopy(keyBytes, 0, bodyBytes, 0, keyBytes.length);
 			System.arraycopy(valueBytes, 0, bodyBytes, keyBytes.length, valueBytes.length);
 			int bodyLen = bodyBytes.length;
 			long posValue = writeValue(bodyBytes);
-			byte[] nodeBytes = new byte[node_bytes_len];
-			byte[] valuePosBytes = ByteUtils.longToBytes(posValue);
+			
+			byte[] nodeBytes = getThreadBytes(BYTE_KEY_NODE,NODE_BYTES_LEN);
+			byte[] valuePosBytes = getThreadBytes(BYTE_KEY_NODE,BYTES_SIZE_POS);
+			ByteUtils.longToBytes(posValue,valuePosBytes);
 			nodeBytes[0] = 1;
 			System.arraycopy(valuePosBytes, 0, nodeBytes, 1, 8);
-			byte[] valueLenBytes = ByteUtils.intToBytes(bodyLen);
-			byte[] keyLenBytes = ByteUtils.intToBytes(keyBytes.length);
+			byte[] valueLenBytes = getThreadBytes(BYTE_KEY_NODE_VAL_LEN,BYTES_SIZE_LEN);
+			ByteUtils.intToBytes(bodyLen,valueLenBytes);
+			byte[] keyLenBytes = getThreadBytes(BYTE_KEY_NODE_KEY_LEN,BYTES_SIZE_LEN);
+			ByteUtils.intToBytes(keyBytes.length,keyLenBytes);
 			System.arraycopy(valueLenBytes, 0, nodeBytes, 9, 4);
 			System.arraycopy(keyLenBytes, 0, nodeBytes, 13, 4);
-			System.arraycopy(new byte[] {0,0,0,0,0,0,0,0}, 0, nodeBytes, 17, 8);
+			System.arraycopy(NULL_POS_BYTES, 0, nodeBytes, 17, 8);
 			long nodePos = writeNode(nodeBytes);
 			if(nodePos==lastNode.getNodePos()) {
 				System.out.println(key+"====>"+getNodeKey(lastNode));
 				throw new RuntimeException();
 			}
-			//重写上一节点
+			
 			getByteBuffer(nodeBytes,lastNode.getNodePos(),nodeByteBuffer);
-			System.arraycopy(ByteUtils.longToBytes(nodePos), 0, nodeBytes, 17, 8);
+			//重写上一节点
+			ByteUtils.longToBytes(nodePos,valuePosBytes);
+			System.arraycopy(valuePosBytes, 0, nodeBytes, 17, 8);
 			this.nodeByteBuffer.position((int) lastNode.getNodePos());
 			this.nodeByteBuffer.put(nodeBytes);
 			return ;
 		}
 		byte[] valueBytes = getValueBytes(value);
-		byte[] keyBytes = key.getBytes();
 		byte[] bodyBytes = new byte[valueBytes.length+keyBytes.length];
+//		byte[] bodyBytes = getThreadBytes(this.hashCode(),valueBytes.length+keyBytes.length);
 		System.arraycopy(keyBytes, 0, bodyBytes, 0, keyBytes.length);
 		System.arraycopy(valueBytes, 0, bodyBytes, keyBytes.length, valueBytes.length);
 		int bodyLen = bodyBytes.length;
 		long posValue = writeValue(bodyBytes);
 		
-		byte[] nodeBytes = new byte[node_bytes_len];
-		byte[] valuePosBytes = ByteUtils.longToBytes(posValue);
+		byte[] nodeBytes = getThreadBytes(BYTE_KEY_NODE,NODE_BYTES_LEN);
+		byte[] valuePosBytes = getThreadBytes(BYTE_KEY_NODE,BYTES_SIZE_POS);
+		ByteUtils.longToBytes(posValue,valuePosBytes);
 		nodeBytes[0] = 1;
 		System.arraycopy(valuePosBytes, 0, nodeBytes, 1, 8);
-		byte[] valueLenBytes = ByteUtils.intToBytes(bodyLen);
-		byte[] keyLenBytes = ByteUtils.intToBytes(keyBytes.length);
+		byte[] valueLenBytes = getThreadBytes(BYTE_KEY_NODE_VAL_LEN,BYTES_SIZE_LEN);
+		ByteUtils.intToBytes(bodyLen,valueLenBytes);
+		byte[] keyLenBytes = getThreadBytes(BYTE_KEY_NODE_KEY_LEN,BYTES_SIZE_LEN);
+		ByteUtils.intToBytes(keyBytes.length,keyLenBytes);
 		System.arraycopy(valueLenBytes, 0, nodeBytes, 9, 4);
 		System.arraycopy(keyLenBytes, 0, nodeBytes, 13, 4);
-		System.arraycopy(new byte[] {0,0,0,0,0,0,0,0}, 0, nodeBytes, 17, 8);
-		
+		System.arraycopy(NULL_POS_BYTES, 0, nodeBytes, 17, 8);
 		long nodePos = writeNode(nodeBytes);
-		
 		long posIndex = getPosIndex(hash);
 		byte[] indexBytes = getIndexBytes(nodeBytes.length, nodePos);
 		indexByteBuffer.position((int) posIndex);
@@ -148,12 +267,13 @@ public class HashFile {
 	public HashNode getNode(String key) throws IOException {
 		long hash = hash(key);
 		//获取key的值
-		return getNode(hash,key);
+		return getNode(hash,key.getBytes());
 	}
-	public HashNode getNode(long hashCode,String key) throws IOException {
+	public HashNode getNode(long hashCode,byte[] key) throws IOException {
 		HashNode hashNode = null;
 		long nodePos = getNodePos(hashCode);
-		byte[] bytes = new byte[node_bytes_len];
+//		byte[] bytes = new byte[INDEX_BYTES_LEN];
+		byte[] bytes = getThreadBytes(BYTE_KEY_INDEX, NODE_BYTES_LEN);
 		while(nodePos >= 1) {
 			//拿到第一个数据的位置
 			getByteBuffer(bytes,nodePos,nodeByteBuffer);
@@ -174,13 +294,13 @@ public class HashFile {
 			node.setValueLength(valueLength);
 			node.setValuePos(valuePos);
 			nodePos = ByteUtils.bytesToLong(bytes,17);
-			if(nodePos>this.nodeFile.length()-node_bytes_len) {
+			if(nodePos>this.nodePos-NODE_BYTES_LEN) {
 				nodePos = -1;
 			}
 			node.setNextPos(nodePos);
 			if(key != null ) {
-				String nodeKey = getNodeKey(node);
-				if(StringUtils.equals(key, nodeKey))
+				byte[] nodeKey = getNodeKeyBytes(node);
+				if(Arrays.equals(key, nodeKey))
 					return node;
 			} else {
 				if(hashNode == null) {
@@ -201,12 +321,16 @@ public class HashFile {
 	private byte[] getNodeValue(HashNode node) throws IOException {
 		return getValue(node.getValuePos()+node.getKeyLength(),node.getValueLength()-node.getKeyLength());
 	}
+	private byte[] getNodeKeyBytes(HashNode node) throws IOException {
+		return getValue(node.getValuePos(),node.getKeyLength());
+	}
 	private String getNodeKey(HashNode node) throws IOException {
 		return new String(getValue(node.getValuePos(),node.getKeyLength()));
 	}
 	private long getNodePos(long hashCode) throws IOException {
 		long posIndex = getPosIndex(hashCode);
-		byte[] bytes = new byte[index_bytes_len];
+//		byte[] bytes = new byte[INDEX_BYTES_LEN];
+		byte[] bytes = getThreadBytes(BYTE_KEY_INDEX, INDEX_BYTES_LEN);
 		int i= 0;
 		int len = (int) (posIndex+bytes.length);
 		for(;posIndex < len;) {
@@ -221,13 +345,13 @@ public class HashFile {
 		
 	}
 
-	private long getByteBuffer(byte[] bytes,long pos,BigMappedByteBuffer byteBuffer) throws IOException {
+	private byte[] getByteBuffer(byte[] bytes,long pos,BigMappedByteBuffer byteBuffer) throws IOException {
 		int i= 0;
 		int len = (int) (pos+bytes.length);
 		for(;pos < len;) {
 			bytes[i++] = byteBuffer.get((int) pos++);
 		}
-		return ByteUtils.bytesToInt(bytes, 0);
+		return bytes;
 		
 	}
 	private long getByteBuffer(byte[] bytes,long pos,MappedByteBuffer byteBuffer) throws IOException {
@@ -237,13 +361,14 @@ public class HashFile {
 			bytes[i++] = byteBuffer.get((int) pos++);
 		}
 		return ByteUtils.bytesToInt(bytes, 0);
-		
 	}
 	
 	private byte[] getIndexBytes(int len, long pos) {
-		byte[] bytes = new byte[index_bytes_len];
-		byte[] lens = ByteUtils.intToBytes(len);
-		byte[] poss = ByteUtils.longToBytes(pos);
+		byte[] bytes = getThreadBytes(BYTE_KEY_INDEX, INDEX_BYTES_LEN);
+		byte[] lens = getThreadBytes(BYTE_KEY_INDEX, BYTES_SIZE_LEN);
+		ByteUtils.intToBytes(len,lens);
+		byte[] poss = getThreadBytes(BYTE_KEY_INDEX, BYTES_SIZE_POS);
+		ByteUtils.longToBytes(pos,poss);
 		System.arraycopy(poss, 0, bytes, 0, poss.length);
 		System.arraycopy(lens, 0, bytes, poss.length, lens.length);
 		return bytes;
@@ -253,18 +378,58 @@ public class HashFile {
 		return value.getBytes();
 	}
 
-	public String get(String key) throws IOException {
+	public byte[] get(String key) throws IOException {
 		HashNode node = getNode(key);
 		return node==null?null:getValue(getNodeValue(node));
 	}
-
+	public byte[] remove(String key) throws IOException {
+		long hash = hash(key);
+		byte[] keyBytes = key.getBytes();
+		HashNode node = getNode(hash,null);
+		HashNode before = null;
+		HashNode current = null;
+		while(node != null) {
+			byte[] nodeKey = getNodeKeyBytes(node);
+			if(Arrays.equals(keyBytes, nodeKey)) {
+				current = node;
+				break;
+			}
+			before = node;
+			node = node.nextNode();
+		}
+		
+		if(before != null) {
+			byte[] nodeBytes = getThreadBytes(BYTE_KEY_NODE,NODE_BYTES_LEN);
+			if(!current.hasNext()) {
+				//删掉上个节点的下一个节点指针
+				getByteBuffer(nodeBytes,before.getNodePos(),nodeByteBuffer);
+				System.arraycopy(NULL_POS_BYTES, 0, nodeBytes, 17, 8);
+			}else {
+				//将上一节点的下一指针指向当前节点的下一个指针
+				byte[] valueLenBytes = getThreadBytes(BYTE_KEY_NODE_VAL_LEN,BYTES_SIZE_LEN);
+				ByteUtils.longToBytes(current.nextNode().getNodePos(),valueLenBytes);
+				System.arraycopy(valueLenBytes, 0, nodeBytes, 17, 8);
+			}
+			this.nodeByteBuffer.position((int) before.getNodePos());
+			this.nodeByteBuffer.put(nodeBytes);
+		}
+		this.nodeByteBuffer.position(current.getNodePos());
+		this.nodeByteBuffer.put(NULL_POINTER_BYTES);
+		return node==null?null:getValue(getNodeValue(node));
+	}
+	public void removeAll() throws IOException {
+		this.indexFile.delete();
+		this.nodeFile.delete();
+		this.valueFile.delete();
+		init();
+	}
 	private long getPosIndex(long hash) {
-		long pos = ((hash & (max_index_len/index_bytes_len)))*index_bytes_len;
-		return pos > max_index_len-index_bytes_len?0:pos;
+		long pos = ((hash & (MAX_INDEX_LEN/INDEX_BYTES_LEN)))*INDEX_BYTES_LEN;
+		return pos > MAX_INDEX_LEN-INDEX_BYTES_LEN?0:pos;
 	}
 
-	private String getValue(byte[] valueBytes) {
-		return new String(valueBytes);
+	private byte[] getValue(byte[] valueBytes) {
+		return valueBytes;//new String(valueBytes);//
 	}
 
 	public long hash(String key) {

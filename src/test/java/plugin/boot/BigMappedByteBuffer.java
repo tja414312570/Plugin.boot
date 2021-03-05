@@ -34,6 +34,8 @@ public class BigMappedByteBuffer{
 				mapperedByteBuffers[i] = old[i];
 			}
 			index = fragments - old.length;
+		}else {
+			index = fragments;
 		}
 		for(int i = index;i<fragments;i++) {
 			long lpos = i*MAX_FRAGMENT_LEN;
@@ -42,21 +44,21 @@ public class BigMappedByteBuffer{
 			mapperedByteBuffers[i].limit((int) MAX_FRAGMENT_LEN);
 		}
 	}
-	public static void main(String[] args) throws IOException {
-		File file = new File("/Users/yanan/Public","test.text");
-		RandomAccessFile ras = new RandomAccessFile(file, "rw");
-		BigMappedByteBuffer mmb = new BigMappedByteBuffer(ras);
-		mmb.position(10737400000l);
-		for(long l = 0;l<Long.MAX_VALUE;l++) {
-			byte[] bytes = ("test:"+l+";").getBytes();
-			mmb.put(bytes);
-			System.out.println(mmb.pos+"["+MAX_FRAGMENT_LEN+"("+(mmb.pos>MAX_FRAGMENT_LEN)+")]"+"--->"+ (mmb.pos / MAX_FRAGMENT_LEN)+"==>"+(mmb.pos % MAX_FRAGMENT_LEN));
-//			if((mmb.pos / MAX_FRAGMENT_LEN)>0) {
-//				return;
-//			}
-		}
-		System.out.println("结束");
-	}
+//	public static void main(String[] args) throws IOException {
+//		File file = new File("/Users/yanan/Public","test.text");
+//		RandomAccessFile ras = new RandomAccessFile(file, "rw");
+//		BigMappedByteBuffer mmb = new BigMappedByteBuffer(ras);
+//		mmb.position(10737400000l);
+//		for(long l = 0;l<Long.MAX_VALUE;l++) {
+//			byte[] bytes = ("test:"+l+";").getBytes();
+//			mmb.put(bytes);
+//			System.out.println(mmb.pos+"["+MAX_FRAGMENT_LEN+"("+(mmb.pos>MAX_FRAGMENT_LEN)+")]"+"--->"+ (mmb.pos / MAX_FRAGMENT_LEN)+"==>"+(mmb.pos % MAX_FRAGMENT_LEN));
+////			if((mmb.pos / MAX_FRAGMENT_LEN)>0) {
+////				return;
+////			}
+//		}
+//		System.out.println("结束");
+//	}
 	public static String valueMulti(int i) {
 		StringBuffer sb = new StringBuffer();
 		if(i >1024) 
@@ -98,8 +100,8 @@ public class BigMappedByteBuffer{
 //		System.out.println((int) (index % MAX_FRAGMENT_LEN));
 //		System.out.println((index % MAX_FRAGMENT_LEN));
 		extract(index);
-		System.out.println(mapperedByteBuffers.length);
-		System.out.println( (index / MAX_FRAGMENT_LEN) );
+//		System.out.println(mapperedByteBuffers.length);
+//		System.out.println( (index / MAX_FRAGMENT_LEN) );
 		return mapperedByteBuffers[(int) (index / MAX_FRAGMENT_LEN) ].put((int) (index % MAX_FRAGMENT_LEN),b);
 	}
 	public long position(long newPosition) {
