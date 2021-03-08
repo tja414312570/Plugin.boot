@@ -41,16 +41,16 @@ public class TestHash {
 		result = hashFile.get("key".getBytes());
 		System.out.println(new String(result));
 		System.out.println(hashFile.get("key-1".getBytes()));
-//		int len = 10000000;
-//		for(long i = 0;i<len;i++) {
-////			System.out.println("key"+i);
-//			hashFile.put(("key"+i).getBytes(), ("hello world!"+i).getBytes());
-////			System.out.println("key:"+i);
-//		}
-//		long times = System.currentTimeMillis() - t;
+		int len = 1000;
+		for(long i = 0;i<len;i++) {
+//			System.out.println("key"+i);
+			hashFile.put(("key"+i).getBytes(), ("hello world!"+i).getBytes());
+//			System.out.println("key:"+i);
+		}
+		long times = System.currentTimeMillis() - t;
 //		
-//		System.err.println("------------存储:" +(times+"ms"));
-//		t = System.currentTimeMillis();
+		System.err.println("------------存储:" +(times+"ms"));
+		t = System.currentTimeMillis();
 ////		System.out.println(hashFile.get("key"));
 ////		System.out.println(hashFile.get("kes"));
 //		for(long i = len-1;i>=0;i--) {
@@ -59,8 +59,14 @@ public class TestHash {
 ////			if(!StringUtils.equals(i+"", new String(value).split("!")[1]))
 ////				System.out.println("key"+i+"==>"+new String(value));
 //		}
-//		times = System.currentTimeMillis() - t;
-//		System.err.println("------------读取:" +(times+"ms"));
+		hashFile.remove(new String("key987").getBytes());
+		while(node != null) {
+			System.out.println(new String(node.getKey())+"===>"+new String(node.getValue()));
+			node = node.nextNode();
+		}
+		times = System.currentTimeMillis() - t;
+		System.out.println(new String(hashFile.get("key999".getBytes())));
+		System.err.println("------------读取:" +(times+"ms"));
 //		synchronized (TestHash.class) {
 //			TestHash.class.wait();
 //		}

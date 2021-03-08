@@ -210,7 +210,7 @@ public class HashFile {
 		if(node != null) {
 			lastNode = node.getLast();
 			while(node != null) {
-				if(Arrays.equals(keyBytes, getNodeKeyBytes(node))) {
+				if(Arrays.equals(keyBytes, getNodeKey(node))) {
 					ValueInfo valueInfo = writeValue(keyBytes, valueBytes);
 					writeNode(valueInfo,node.getNodePos(),NODE_COVERY,-1);
 					return ;
@@ -283,7 +283,7 @@ public class HashFile {
 			node.setHashCode(hashCode);
 			nodePos = node.getNextPos();
 			if(keyBytes != null ) {
-				byte[] nodeKey = getNodeKeyBytes(node);
+				byte[] nodeKey = getNodeKey(node);
 				if(Arrays.equals(keyBytes, nodeKey))
 					return node;
 			} else {
@@ -328,18 +328,13 @@ public class HashFile {
 		getByteBuffer(bytes,pos,valueByteBuffer);
 		return bytes;
 	}
-	private byte[] getNodeValue(HashNode node){
+	public byte[] getNodeValue(HashNode node){
 		return getValue(node.getValuePos()+node.getKeyLength(),node.getValueLength()-node.getKeyLength());
 	}
-	private byte[] getNodeKeyBytes(HashNode node){
+	public byte[] getNodeKey(HashNode node){
 		return getValue(node.getValuePos(),node.getKeyLength());
 	}
-	@SuppressWarnings("unused")
-	private String getNodeKey(HashNode node){
-		return new String(getValue(node.getValuePos(),node.getKeyLength()));
-	}
 	private long getNodePos(long hashCode){
-		
 		long posIndex = getPosIndex(hashCode);
 		byte[] bytes = getThreadBytes(BYTE_KEY_INDEX, INDEX_BYTES_LEN);
 		int i= 0;
@@ -398,7 +393,7 @@ public class HashFile {
 		HashNode before = null;
 		HashNode current = null;
 		while(node != null) {
-			byte[] nodeKey = getNodeKeyBytes(node);
+			byte[] nodeKey = getNodeKey(node);
 			if(Arrays.equals(keyBytes, nodeKey)) {
 				current = node;
 				break;

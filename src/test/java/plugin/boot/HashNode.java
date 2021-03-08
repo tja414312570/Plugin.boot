@@ -118,4 +118,10 @@ public class HashNode {
 		this.hashCode = hashCode;
 	}
 
+	public byte[] getKey() {
+		return this.hashFile.getNodeKey(this);
+	}
+	public byte[] getValue() {
+		return this.hashFile.getNodeValue(this);
+	}
 }
