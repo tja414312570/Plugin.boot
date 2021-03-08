@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wrapper namespace="com.yanan.billing.service.user.UserService" database="yanan_Account">
+	<select id="queryUserByPhone" resultType="com.yanan.billing.model.UserAccountModel">
+		SELECT * FROM user_account
+		where phone = #{phone}
+	</select>
+	<select id="queryUserById" resultType="com.yanan.billing.model.UserAccountModel">
+		SELECT * FROM user_account
+		where uid = #{uid}
+	</select>
+	<insert id="insertUser" resultType="int">
+		INSERT INTO user_account (
+			uid,
+			phone,
+			pwd,
+			status,
+			createDate,
+			note
+		 ) VALUES (
+		 	#{uid},
+			#{phone},
+			#{pwd},
+			#{status},
+			#{createDate},
+			#{note}
+		 )
+		
+	</insert>
+</wrapper>

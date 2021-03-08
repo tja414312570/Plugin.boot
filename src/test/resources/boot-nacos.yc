@@ -1,0 +1,11 @@
+##基础引导参数
+#-environment-boot:环境引导类，默认通过依赖判断为StandEnvironmentBoot或则WebEnvironmentBoot
+#-environment-scan:环境扫描包位置，支持classpath
+#-boot-configure:引导配置地址，支持classpath
+#-boot-disabled:禁用配置，多个用,分开
+
+#模块配置
+includes:[
+	"plugin.yc"
+	"boot.cloud.yc"
+]
