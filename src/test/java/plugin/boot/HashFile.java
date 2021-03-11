@@ -7,6 +7,9 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import com.yanan.utils.ByteUtils;
 
@@ -59,6 +62,26 @@ public class HashFile {
 		}catch(IOException exception) {
 			throw new RuntimeException("failed to read buffered",exception);
 		}
+	}
+	private Hash hashCode = (keys)->{
+		 if (keys == null)
+	            return 0;
+        long result = 1;
+        for (byte element : keys)
+            result = 31 * result + element;
+        return result;
+	};
+	
+	public Hash getHashCode() {
+		return hashCode;
+	}
+	
+	public void setHashCode(Hash hash) {
+		this.hashCode = hash;
+	}
+
+	static interface Hash{
+		long hash(byte[] keys);
 	}
 //	private static ThreadLocal<byte[][]> bytePools = new ThreadLocal<>();
 //	public byte[] getThreadBytes(int hash,int width) {
@@ -189,20 +212,32 @@ public class HashFile {
 		IteratorHashNode node = readNode(1l,new IteratorHashNode(this));
 		return node;
 	}
-	
+	public void forEach(BiConsumer<byte[],byte[]> action) {
+		forEach(node->{
+			action.accept(node.getKey(), node.getValue());
+		});
+	}
+	public void forEach(Consumer<HashNode> action) {
+		HashNode node = this.entrySet();
+		while(node != null) {
+			action.accept(node);
+			node = node.nextNode();
+		}
+	}
+	private IoExecutor<byte[]> writeValue = (bodyBytes)->{
+		valueByteBuffer.put(bodyBytes);
+	};
 	public ValueInfo writeValue(byte[] keyBytes,byte[] valueBytes){
 		byte[] bodyBytes = new byte[valueBytes.length+keyBytes.length];
 		System.arraycopy(keyBytes, 0, bodyBytes, 0, keyBytes.length);
 		System.arraycopy(valueBytes, 0, bodyBytes, keyBytes.length, valueBytes.length);
 		int bodyLen = bodyBytes.length;
 		long posValue = valueByteBuffer.position();
-		try_catch((param)->{
-			valueByteBuffer.put(bodyBytes);
-		},null);
+		try_catch(writeValue,bodyBytes);
 		return createValueInfo(posValue, keyBytes.length,bodyLen);
 	}
 	public void put(byte[] keyBytes, byte[] valueBytes){
-		long hash = hash(keyBytes);
+		long hash = hashCode.hash(keyBytes);
 		//获取节点
 		HashNode node = getNode(hash,null);
 		HashNode lastNode = null;
@@ -231,6 +266,9 @@ public class HashFile {
 		indexByteBuffer.position( (int) posIndex);
 		indexByteBuffer.put(indexBytes);
 	}
+	private IoExecutor<byte[]> writeNode = (nodeBytes)->{
+		nodeByteBuffer.put(nodeBytes);
+	};
 	private long writeNode(ValueInfo valueInfo,long pos,int operate, long nextNode){
 		byte[] nodeBytes = getThreadBytes(BYTE_KEY_NODE,NODE_BYTES_LEN);
 		if(operate != NODE_NEW) 
@@ -255,31 +293,55 @@ public class HashFile {
 		}
 		if(pos == -1) {
 			pos = nodeByteBuffer.position();
-			try_catch((param)->{
-				nodeByteBuffer.put(nodeBytes);
-			}, null);
+			try_catch(writeNode, nodeBytes);
 		}else {
 			long oldPos = this.nodeByteBuffer.position();
 			this.nodeByteBuffer.position(pos);
-			try_catch((param)->{
-				nodeByteBuffer.put(nodeBytes);
-			}, null);
+			try_catch(writeNode, nodeBytes);
 			this.nodeByteBuffer.position(oldPos);
 		}
 		return pos;
 	}
 	public HashNode getNode(byte[] keyBytes){
-		long hash = hash(keyBytes);
+		long hash = hashCode.hash(keyBytes);
 		//获取key的值
 		return getNode(hash,keyBytes);
+	}
+	final int maxNodePoolsSize = 1024*1024;
+	final HashNode[] nodePools = new HashNode[maxNodePoolsSize];
+	private AtomicInteger nodePos = new AtomicInteger(0);
+	public HashNode getPoolsNode(long pos) {
+		HashNode node = nodePools[nodePos.get()];
+		if(node == null) {
+			node = new HashNode(this);
+			nodePools[nodePos.get()] = node;
+		}else {
+			node.setBefore(null);
+			node.setHashCode(0L);
+			node.setKeyLength(0);
+			node.setMark(0);
+			node.setNext(null);
+			node.setNextPos(0L);
+			node.setValueLength(0);
+			node.setValuePos(0L);
+		}
+		if(nodePos.incrementAndGet() >= maxNodePoolsSize) {
+			nodePos.set(0);
+		}
+		return node;
 	}
 	public HashNode getNode(long hashCode,byte[] keyBytes){
 		HashNode hashNode = null;
 		long nodePos = getNodePos(hashCode);
-//		byte[] bytes = new byte[INDEX_BYTES_LEN];
 		while(nodePos >= 1) {
+			HashNode node = null;
 			//拿到第一个数据的位置
-			HashNode node = readNode(nodePos,new HashNode(this));
+			if(keyBytes == null) {
+				node = getPoolsNode(nodePos);
+			}else {
+				node = new HashNode(this);
+			}
+			readNode(nodePos,node);
 			node.setHashCode(hashCode);
 			nodePos = node.getNextPos();
 			if(keyBytes != null ) {
@@ -295,10 +357,25 @@ public class HashFile {
 				}
 			}
 		}
+		if(hashNode(hashNode)>5) {
+			System.err.println("==========");
+			HashNode node = hashNode;
+			while(node != null) {
+				System.out.println(node.getHashCode()+"===>"+node.hashCode()+"==>"+ByteUtils.bytesToLong(node.getKey()));
+				node = node.nextNode(); 
+			}
+		}
 		return hashNode;
 	}
+	public int hashNode(HashNode node) {
+		int i = 0;
+		while(node != null) {
+			i ++;
+			node = node.nextNode();
+		}
+		return i;
+	}
 	public <T extends HashNode> T readNode(long nodePos,T node){
-		try_catch((poss)->{
 			byte[] bytes = getThreadBytes(BYTE_KEY_INDEX, NODE_BYTES_LEN);
 			getByteBuffer(bytes,nodePos,nodeByteBuffer);
 			//节点标志
@@ -320,7 +397,6 @@ public class HashFile {
 				nextPos = -1;
 			}
 			node.setNextPos(nextPos);
-		},nodePos);
 		return node;
 	}
 	private byte[] getValue(long pos,int length){
@@ -343,7 +419,6 @@ public class HashFile {
 			try {
 				bytes[i++] = this.indexByteBuffer.get( (int) posIndex++);
 			}catch (Exception e) {
-//				System.err.println(posIndex+"===>"+hashCode+"===>"+getPosIndex(hashCode));
 				throw new RuntimeException(e);
 			}
 		}
@@ -352,13 +427,12 @@ public class HashFile {
 	}
 
 	private byte[] getByteBuffer(byte[] bytes,long pos,BigMappedByteBuffer byteBuffer){
-		try_catch((poss)->{
 			int i= 0;
+			long poss = pos;
 			long len =  (poss+bytes.length);
 			for(;poss < len;) {
 				bytes[i++] = byteBuffer.get(poss++);
 			}
-		},pos);
 		return bytes;
 		
 	}
@@ -388,7 +462,7 @@ public class HashFile {
 		return node==null?null:getNodeValue(node);
 	}
 	public byte[] remove(byte[] keyBytes){
-		long hash = hash(keyBytes);
+		long hash = hashCode.hash(keyBytes);
 		HashNode node = getNode(hash,null);
 		HashNode before = null;
 		HashNode current = null;
@@ -401,28 +475,30 @@ public class HashFile {
 			before = node;
 			node = node.nextNode();
 		}
-		
-		if(before != null) {
-			byte[] nodeBytes = getThreadBytes(BYTE_KEY_NODE,NODE_BYTES_LEN);
-			if(!current.hasNext()) {
-				//删掉上个节点的下一个节点指针
-				getByteBuffer(nodeBytes,before.getNodePos(),nodeByteBuffer);
-				System.arraycopy(NULL_POS_BYTES, 0, nodeBytes, 17, 8);
-			}else {
-				//将上一节点的下一指针指向当前节点的下一个指针
-				byte[] valueLenBytes = getThreadBytes(BYTE_KEY_NODE_VAL_LEN,BYTES_SIZE_LEN);
-				ByteUtils.longToBytes(current.nextNode().getNodePos(),valueLenBytes);
-				System.arraycopy(valueLenBytes, 0, nodeBytes, 17, 8);
+		long oldPos = this.nodeByteBuffer.position();
+		try {
+			if(node != null) {
+				if(before != null) {
+					byte[] nodeBytes = getThreadBytes(BYTE_KEY_NODE,NODE_BYTES_LEN);
+					if(!current.hasNext()) {
+						//删掉上个节点的下一个节点指针
+						getByteBuffer(nodeBytes,before.getNodePos(),nodeByteBuffer);
+						System.arraycopy(NULL_POS_BYTES, 0, nodeBytes, 17, 8);
+					}else {
+						//将上一节点的下一指针指向当前节点的下一个指针
+						byte[] valueLenBytes = getThreadBytes(BYTE_KEY_NODE_VAL_LEN,BYTES_SIZE_LEN);
+						ByteUtils.longToBytes(current.nextNode().getNodePos(),valueLenBytes);
+						System.arraycopy(valueLenBytes, 0, nodeBytes, 17, 8);
+					}
+					this.nodeByteBuffer.position( before.getNodePos());
+					try_catch(writeNode, nodeBytes);
+				}
+				this.nodeByteBuffer.position(current.getNodePos());
+				try_catch(writeNode, NULL_POINTER_BYTES);
 			}
-			this.nodeByteBuffer.position( before.getNodePos());
-			try_catch((param)->{
-				this.nodeByteBuffer.put(nodeBytes);
-			}, null);
+		}finally {
+			 this.nodeByteBuffer.position(oldPos);
 		}
-		this.nodeByteBuffer.position(current.getNodePos());
-		try_catch((param)->{
-			this.nodeByteBuffer.put(NULL_POINTER_BYTES);
-		}, null);
 		return node==null?null:getNodeValue(node);
 	}
 	public void removeAll(){
@@ -436,12 +512,5 @@ public class HashFile {
 		return pos > MAX_INDEX_LEN-INDEX_BYTES_LEN?0:pos;
 	}
 
-	public long hash(byte[] keys) {
-		 if (keys == null)
-	            return 0;
-        long result = 1;
-        for (byte element : keys)
-            result = 31 * result + element;
-        return result;
-	}
+	
 }

@@ -4,7 +4,7 @@ public class HashNode {
 	protected HashFile hashFile;
 	protected HashNode next;
 	protected HashNode before;
-	protected long mark;
+	protected int mark;
 	// 值的指针
 	protected long valuePos;
 	// 值的总长度
@@ -18,11 +18,11 @@ public class HashNode {
 	
 	protected long hashCode;
 
-	public long getMark() {
+	public int getMark() {
 		return mark;
 	}
 
-	public void setMark(long mark) {
+	public void setMark(int mark) {
 		this.mark = mark;
 	}
 

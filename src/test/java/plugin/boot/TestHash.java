@@ -2,49 +2,51 @@ package plugin.boot;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 
-import org.apache.commons.codec.binary.StringUtils;
+import com.yanan.utils.ByteUtils;
 
 public class TestHash {
 	public static void main(String[] args) throws IOException, InterruptedException {
-		int hash = 0;
-		int pos = hash << 6;
-//		System.out.println(pos);
 //		Thread.sleep(10000);
 //		System.out.println(System.identityHashCode("lllllsss"));
 		HashFile hashFile = new HashFile();
+		hashFile.setHashCode((keys)->{
+			return ByteUtils.bytesToLong(keys);
+		});
 //		Map<String,String> hashFile = new HashMap<String,String>();
 		long t = System.currentTimeMillis();
-		hashFile.put("key".getBytes(), "hello world!".getBytes());
+//		hashFile.put("key".getBytes(), "hello world!".getBytes());
 		
 		new HashMap<>().entrySet();
 		HashNode node = hashFile.entrySet();
 		System.out.println(node.hasNext());
-		System.out.println(new String(hashFile.get("key".getBytes())));
-		hashFile.put("key".getBytes(), "hello world!s".getBytes());
-		hashFile.put("kes".getBytes(), "hello kes".getBytes());
-		System.out.println(node.hasNext());
-		System.out.println(new String(hashFile.get("key".getBytes())));
-		System.out.println(new String(hashFile.get("kes".getBytes())));
-		hashFile.remove("key".getBytes());
-		
-		byte[] result = hashFile.get("key".getBytes());
-		System.out.println(result);
-		System.out.println(new String(hashFile.get("kes".getBytes())));
-		hashFile.removeAll();
-		result = hashFile.get("kes".getBytes());
-		System.out.println(result);
-		result = hashFile.get("key".getBytes());
-		System.out.println(result);
-		hashFile.put("key".getBytes(), "hello world!ssssssss".getBytes());
-		result = hashFile.get("key".getBytes());
-		System.out.println(new String(result));
-		System.out.println(hashFile.get("key-1".getBytes()));
-		int len = 1000;
+//		System.out.println(new String(hashFile.get("key".getBytes())));
+//		hashFile.put("key".getBytes(), "hello world!s".getBytes());
+//		hashFile.put("kes".getBytes(), "hello kes".getBytes());
+//		System.out.println(node.hasNext());
+//		System.out.println(new String(hashFile.get("key".getBytes())));
+//		System.out.println(new String(hashFile.get("kes".getBytes())));
+//		hashFile.remove("key".getBytes());
+//		
+//		byte[] result = hashFile.get("key".getBytes());
+//		System.out.println(result);
+//		System.out.println(new String(hashFile.get("kes".getBytes())));
+//		hashFile.removeAll();
+//		result = hashFile.get("kes".getBytes());
+//		System.out.println(result);
+//		result = hashFile.get("key".getBytes());
+//		System.out.println(result);
+//		hashFile.put("key".getBytes(), "hello world!ssssssss".getBytes());
+//		result = hashFile.get("key".getBytes());
+//		System.out.println(new String(result));
+//		System.out.println(hashFile.get("key-1".getBytes()));
+		long len = 1000000000;
+		byte[] bytes = new byte[8];
 		for(long i = 0;i<len;i++) {
-//			System.out.println("key"+i);
-			hashFile.put(("key"+i).getBytes(), ("hello world!"+i).getBytes());
+			if(i % 10000 == 0)
+			System.out.println(i);
+			ByteUtils.longToBytes(i,bytes);
+			hashFile.put(bytes, bytes);
 //			System.out.println("key:"+i);
 		}
 		long times = System.currentTimeMillis() - t;
@@ -59,14 +61,22 @@ public class TestHash {
 ////			if(!StringUtils.equals(i+"", new String(value).split("!")[1]))
 ////				System.out.println("key"+i+"==>"+new String(value));
 //		}
-		hashFile.remove(new String("key987").getBytes());
-		while(node != null) {
-			System.out.println(new String(node.getKey())+"===>"+new String(node.getValue()));
-			node = node.nextNode();
-		}
+		hashFile.remove(new String("key9879").getBytes());
+		node = hashFile.entrySet();
+//		while(node != null) {
+//			System.out.println(new String(node.getKey())+"===>"+new String(node.getValue()));
+//			node = node.nextNode();
+//		}
+		hashFile.forEach((key,value)->{
+			System.out.println(new String(key)+"===>"+new String(value));
+		});
 		times = System.currentTimeMillis() - t;
-		System.out.println(new String(hashFile.get("key999".getBytes())));
+//		System.out.println(new String(hashFile.get("key999".getBytes()))+"======"+hashFile.getNode("key999".getBytes()).getNodePos());
 		System.err.println("------------读取:" +(times+"ms"));
+		
+		hashFile.forEach((key,value)->{
+			System.out.println(new String(key)+"===>"+new String(value));
+		});
 //		synchronized (TestHash.class) {
 //			TestHash.class.wait();
 //		}
