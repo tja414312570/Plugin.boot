@@ -12,6 +12,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import com.yanan.utils.ByteUtils;
+import com.yanan.utils.resource.ResourceManager;
 
 /**
  * 基于文件系统的hash map，用于存储文件数据
@@ -45,7 +46,7 @@ public class HashFile {
 													0,0,0,0,
 													0,0,0,0,
 													0,0,0,0,0,0,0,0};
-	private static String tempDir = "/Users/yanan/Public";//ResourceManager.classPath();//
+	private static String tempDir = ResourceManager.classPath();//"/Users/yanan/Public";//
 	private MappedByteBuffer indexByteBuffer;
 	private BigMappedByteBuffer nodeByteBuffer;
 	private BigMappedByteBuffer valueByteBuffer;
