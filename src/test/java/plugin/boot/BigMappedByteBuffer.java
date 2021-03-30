@@ -37,8 +37,6 @@ public class BigMappedByteBuffer{
 		}
 		while(index < fragments) {
 			long lpos = ((long)index )*((long)MAX_FRAGMENT_LEN);
-				System.err.println(lpos+"==>"+index+"==>"+index+"==>"+len);
-				System.out.println(this);
 				mapperedByteBuffers[index] = this.randomAccessFile.getChannel()
 		                .map(FileChannel.MapMode.READ_WRITE,lpos,MAX_FRAGMENT_LEN);
 			mapperedByteBuffers[index].limit(MAX_FRAGMENT_LEN);

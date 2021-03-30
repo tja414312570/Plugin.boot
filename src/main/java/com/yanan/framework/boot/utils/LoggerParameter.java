@@ -16,7 +16,6 @@ import com.yanan.framework.plugin.handler.HandlerSet;
 @Register
 public class LoggerParameter implements FieldHandler
 {
-
 	@Override
 	public void preparedField(RegisterDefinition registerDefinition, Object proxy, Object target,
 			HandlerSet handlerSet, Field field) {

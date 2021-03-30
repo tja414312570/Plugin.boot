@@ -1,7 +1,6 @@
 package plugin.boot;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoException;
@@ -9,10 +8,10 @@ import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
 import com.yanan.framework.ant.utils.SerialUtils;
 
-public class StringHashMap extends HashFile{
+public class AbstractHashMap extends HashFile{
 	private long size;
 	private ByteBufferOutput byteBufferOutput;
-	public StringHashMap() {
+	public AbstractHashMap() {
 		ByteBuffer buffer = ByteBuffer.allocate(1024);
 		byteBufferOutput = new ByteBufferOutput(buffer,2048000);
 	}

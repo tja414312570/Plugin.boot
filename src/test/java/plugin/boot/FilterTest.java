@@ -11,7 +11,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebInitParam;
 
-import com.yanan.framework.plugin.annotations.Register;
 //@Register
 @WebInitParam(name = "", value = "")
 @WebFilter(filterName = "tokenFilters", urlPatterns = "/*")
@@ -33,6 +32,35 @@ public class FilterTest implements Filter{
 	public void destroy() {
 		// TODO Auto-generated method stub
 		
+	}
+	public static void main(String[] args) {
+		
+		int j = (1 << 10)-1;
+		int d = j;
+		System.out.println(Integer.toBinaryString(j));
+		int bitCount = Integer.bitCount(j);
+		System.out.println(bitCount);
+		int iCount;
+		for(int i = 2;i < 40;i++) {
+			System.out.println();
+			System.out.println(Integer.toBinaryString(i)+"---"+i);
+			int c = (d*i);
+			//位数是否为1
+//			if((i & 1) == 1) {
+//				iCount = Integer.bitCount(i);
+//				System.out.println(iCount+"   lll");
+//			}
+			
+			
+//			if((j & 2) == 1) {
+//				System.out.println((j<<=1)+"===>"+c);
+//			}else {
+//				System.out.println((j <<= 1)+"===>"+c);
+//			}
+			System.out.println(Integer.toBinaryString(j));
+			System.out.println(Integer.toBinaryString(c));
+			
+		}
 	}
 
 }

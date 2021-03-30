@@ -40,10 +40,10 @@ public class TestHash {
 //		result = hashFile.get("key".getBytes());
 //		System.out.println(new String(result));
 //		System.out.println(hashFile.get("key-1".getBytes()));
-		long len = 1000000000;
+		long len = 100000000;
 		byte[] bytes = new byte[8];
 		for(long i = 0;i<len;i++) {
-			if(i % 10000 == 0)
+			if(i % 1000000 == 0)
 			System.out.println(i);
 			ByteUtils.longToBytes(i,bytes);
 			hashFile.put(bytes, bytes);
@@ -61,25 +61,29 @@ public class TestHash {
 ////			if(!StringUtils.equals(i+"", new String(value).split("!")[1]))
 ////				System.out.println("key"+i+"==>"+new String(value));
 //		}
-		hashFile.remove(new String("key9879").getBytes());
+//		hashFile.remove(new String("key9879").getBytes());
 		node = hashFile.entrySet();
 //		while(node != null) {
 //			System.out.println(new String(node.getKey())+"===>"+new String(node.getValue()));
 //			node = node.nextNode();
 //		}
+//		hashFile.forEach((key,value)->{
+//			System.out.println(new String(key)+"===>"+new String(value));
+//		});
 		hashFile.forEach((key,value)->{
-			System.out.println(new String(key)+"===>"+new String(value));
+			if(ByteUtils.bytesToLong(key) % 1000000 == 0)
+			System.out.println(ByteUtils.bytesToLong(key)+"====>"+ByteUtils.bytesToLong(value));
 		});
 		times = System.currentTimeMillis() - t;
 //		System.out.println(new String(hashFile.get("key999".getBytes()))+"======"+hashFile.getNode("key999".getBytes()).getNodePos());
 		System.err.println("------------读取:" +(times+"ms"));
 		
-		hashFile.forEach((key,value)->{
-			System.out.println(new String(key)+"===>"+new String(value));
-		});
-//		synchronized (TestHash.class) {
-//			TestHash.class.wait();
-//		}
+//		hashFile.forEach((key,value)->{
+//			System.out.println(ByteUtils.bytesToLong(key)+"====>"+ByteUtils.bytesToLong(value));
+//		});
+		synchronized (TestHash.class) {
+			TestHash.class.wait();
+		}
 	}
 	public static String valueMulti(int i) {
 		StringBuffer sb = new StringBuffer();
