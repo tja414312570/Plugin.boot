@@ -67,6 +67,7 @@ public class WEBPluginBootServerTest {
 //				}
 //			}
 //		}).start();
+		PlugsFactory.getInstance().addDefinition(DefaultLogger.class);
 		PlugsFactory.getInstance().addDefinition(VariableWiredHandler.class);
 		PluginBootServer.run();
 		

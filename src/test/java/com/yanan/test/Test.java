@@ -5,7 +5,6 @@ import javax.validation.constraints.NotNull;
 
 import org.slf4j.Logger;
 
-import com.yanan.framework.boot.utils.Log;
 import com.yanan.framework.jdb.SqlSession;
 import com.yanan.framework.plugin.annotations.Register;
 import com.yanan.framework.plugin.annotations.Service;
@@ -21,7 +20,7 @@ import com.yanan.utils.resource.Resource;
 
 @Register
 public class Test {
-	@Log
+	@Service
 	private Logger log;
 	
 	@Variable("jdb.password")
