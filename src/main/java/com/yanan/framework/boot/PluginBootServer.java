@@ -61,7 +61,7 @@ public class PluginBootServer {
 		resolverBootArguments(args,environment,mainClass);
 		//获取基本配置
 		PluginBoot pluginBoot = mainClass.getAnnotation(PluginBoot.class);
-		addPluginContext(mainClass, pluginBoot);
+		addPluginContext(mainClass, pluginBoot,environment);
 		//获取其它配置注释
 		EnvironmentBoot envoronmentBoot = dedudeEnvironment(environment);
 		//加载组件工厂
@@ -110,7 +110,7 @@ public class PluginBootServer {
 		}
 		log.info("Plugin enviroment boot:"+enviromentBootClass.getName());
 		try {
-			enviromentBoot = (EnvironmentBoot) enviromentBootClass.newInstance();
+			enviromentBoot = (EnvironmentBoot) PlugsFactory.getPluginsInstance(enviromentBootClass);
 		} catch (Exception e) {
 			throw new PluginBootException("failed to instance environment boot class:"+enviromentBootClass,e);
 		}
@@ -194,8 +194,9 @@ public class PluginBootServer {
      * 添加Plugin的扫描上下文
      * @param configure
      * @param pluginBoot
+	 * @param environment 
      */
-	public static void addPluginContext(Class<?> configure, PluginBoot pluginBoot) {
+	public static void addPluginContext(Class<?> configure, PluginBoot pluginBoot, Environment environment) {
 		if (pluginBoot == null || pluginBoot.contextClass().length == 0) {
 			// 将class文件上下文添加到Plug中
 			PlugsFactory.getInstance().addScanPath(configure);
@@ -204,6 +205,9 @@ public class PluginBootServer {
 			PlugsFactory.getInstance().addScanPath(pluginBoot.contextClass());
 			log.info("Plugin Application Context Path "+Arrays.toString(ResourceManager.getClassPath(pluginBoot.contextClass())));
 		}
-		PlugsFactory.init("classpath:boot.yc");
+		if(!pluginBoot.enviromentBoot().equals(EnvironmentBoot.class)) {
+			environment.setVariable("-environment-boot", pluginBoot.enviromentBoot().getName());
+		}
+		PlugsFactory.init();
 	}
 }

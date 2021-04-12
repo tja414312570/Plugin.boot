@@ -37,6 +37,7 @@ import com.yanan.framework.boot.StandEnvironmentBoot;
 import com.yanan.framework.plugin.Environment;
 import com.yanan.framework.plugin.PlugsFactory;
 import com.yanan.framework.plugin.annotations.Register;
+import com.yanan.framework.plugin.annotations.Service;
 import com.yanan.framework.token.web.TokenContextInit;
 import com.yanan.framework.token.web.TokenFilter;
 import com.yanan.framework.webmvc.CoreDispatcher;
@@ -58,8 +59,9 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
 	private static final String WEB_ENVIROMNET_BOOT_CLASS = "-boot-web-environment-class";
 	private static final String WEB_ENVIROMNET_BOOT_LOADER = "-boot-web-environment-loader";
 	// tomcat 实例
-	private static Tomcat tomcat;
-	static Logger log = LoggerFactory.getLogger(WebEnvironmentBoot.class);
+	private Tomcat tomcat;
+	@Service
+	private Logger logger = LoggerFactory.getLogger(WebEnvironmentBoot.class);
 	private static boolean b = false;
 
 	/**
@@ -67,7 +69,7 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
 	 * @param ctx
 	 * @param configure
 	 */
-	public static void addFilter(org.apache.catalina.Context ctx, Class<?> configure) {
+	public void addFilter(org.apache.catalina.Context ctx, Class<?> configure) {
 		addFilter(ctx, new TokenFilter(),TokenFilter.class);
 		if(PlugsFactory.getPlugin(Filter.class) != null) {
 			List<Filter> filters = PlugsFactory.getPluginsInstanceList(Filter.class);
@@ -111,7 +113,7 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
 	 * 初始化Tomcat
 	 * @param pluginBoot
 	 */
-	public static void initTomcat(WebPluginBoot pluginBoot,Class<?> contextClass) {
+	public void initTomcat(WebPluginBoot pluginBoot,Class<?> contextClass) {
 		if (tomcat == null) {
 			synchronized (WebEnvironmentBoot.class) {
 				if (tomcat == null) {
@@ -141,15 +143,15 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
 	}
 
 
-	public static void addUpgradeProtocols(Connector connector, String[] upgradeProtocols) {
+	public  void addUpgradeProtocols(Connector connector, String[] upgradeProtocols) {
 		for(String upgradeProtocol : upgradeProtocols) {
 			try {
 		        Class<?> clazz = Class.forName(upgradeProtocol);
 		        UpgradeProtocol protocol  = (UpgradeProtocol) clazz.getConstructor().newInstance();
 				connector.addUpgradeProtocol(protocol);
-				log.info("Upgrade Protocol:"+protocol.getClass().getName());
+				logger.info("Upgrade Protocol:"+protocol.getClass().getName());
 		    } catch (Exception e) {
-		        log.error(e.getMessage(), e);
+		        logger.error(e.getMessage(), e);
 		    } 
 		}
 	}
@@ -160,13 +162,13 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
 	 * @param contextClass
 	 * @param connector
 	 */
-	public static void tryAddSslConnector(WebPluginBoot pluginBoot, Class<?> contextClass, Connector connector) {
+	public void tryAddSslConnector(WebPluginBoot pluginBoot, Class<?> contextClass, Connector connector) {
 		SSLHost sslHost = contextClass .getAnnotation(SSLHost.class);
 		Certificate certificate = contextClass .getAnnotation(Certificate.class);
 		if(certificate != null || sslHost != null) {
-			log.info("Try Add SSl Connector !");
-			log.info("SSL host Info:"+sslHost);
-			log.info("Certificate Info:"+certificate);
+			logger.info("Try Add SSl Connector !");
+			logger.info("SSL host Info:"+sslHost);
+			logger.info("Certificate Info:"+certificate);
 			SSLHostConfig sslHostConfig;
 			if(sslHost != null) {
 				sslHostConfig = new SSLHostConfig();
@@ -219,14 +221,14 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
      * @param configure
      * @param pluginBoot
      */
-	public static void addPluginContext(Class<?> configure, WebPluginBoot pluginBoot) {
+	public void addPluginContext(Class<?> configure, WebPluginBoot pluginBoot) {
 		if (pluginBoot == null || pluginBoot.contextClass().length == 0) {
 			// 将class文件上下文添加到Plug中
 			PlugsFactory.getInstance().addScanPath(configure);
-			log.info("Plugin Application Context Path "+Arrays.toString(ResourceManager.getClassPath(configure)));
+			logger.info("Plugin Application Context Path "+Arrays.toString(ResourceManager.getClassPath(configure)));
 		} else {
 			PlugsFactory.getInstance().addScanPath(pluginBoot.contextClass());
-			log.info("Plugin Application Context Path "+Arrays.toString(ResourceManager.getClassPath(pluginBoot.contextClass())));
+			logger.info("Plugin Application Context Path "+Arrays.toString(ResourceManager.getClassPath(pluginBoot.contextClass())));
 		}
 		PlugsFactory.init();
 	}
@@ -234,7 +236,7 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
 	 * 设置App的基本路径
 	 * @param pluginBoot
 	 */
-	public static void setHostAppBase(WebPluginBoot pluginBoot) {
+	public void setHostAppBase(WebPluginBoot pluginBoot) {
 		String userDir = System.getProperty(pluginBoot.appBase()) + File.separator;
 		tomcat.getHost().setAppBase(userDir);
 	}
@@ -242,24 +244,24 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
 	 * 添加WebApp
 	 * @param configure
 	 */
-	public static void addWebApp(Class<?> configure) {
+	public void addWebApp(Class<?> configure) {
 		WebAppGroups webAppGroups = configure.getAnnotation(WebAppGroups.class);
 		if(webAppGroups != null && webAppGroups.enable()) {
 			if(webAppGroups.value().length != 0 ) {
 				for(WebApp webApp : webAppGroups.value()) {
 					tomcat.addWebapp(webApp.contextPath(), webApp.docBase());
-					log.info("Web Application, context path:"+webApp.contextPath()+", doc base:"+webApp.docBase());
+					logger.info("Web Application, context path:"+webApp.contextPath()+", doc base:"+webApp.docBase());
 				}
 			}else { 
 				WebApp webApp = getDefaultConfigure(WebApp.class);
 				tomcat.addWebapp(webApp.contextPath(), webApp.docBase());
-				log.info("Web Application, context path:"+webApp.contextPath()+", doc base:"+webApp.docBase());
+				logger.info("Web Application, context path:"+webApp.contextPath()+", doc base:"+webApp.docBase());
 			}
 		}else {
 			WebApp webApp = configure.getAnnotation(WebApp.class);
 			if(webApp != null) {
 				tomcat.addWebapp(webApp.contextPath(), webApp.docBase());
-				log.info("Web Application, context path:"+webApp.contextPath()+", doc base:"+webApp.docBase());
+				logger.info("Web Application, context path:"+webApp.contextPath()+", doc base:"+webApp.docBase());
 			}
 		}
 	}
@@ -275,13 +277,13 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
 	 * 停止运行
 	 * @throws LifecycleException
 	 */
-	public static void stop() throws LifecycleException {
+	public void stop() throws LifecycleException {
 		if (tomcat != null)
 			tomcat.stop();
 	}
 
 	public void start(Environment environment) {
-		log.info("plugin boot environment in web [tomcat]");
+		logger.info("plugin boot environment in web [tomcat]");
 		super.start(environment);
 		Class<?> mainClass = environment.getVariable(Environment.MAIN_CLASS);
 		WebPluginBoot pluginBoot = mainClass.getAnnotation(WebPluginBoot.class);
@@ -290,7 +292,7 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
 		addPluginContext(mainClass, pluginBoot);
 		//初始化Tomcat
 		initTomcat(pluginBoot,mainClass);
-		log.info("Web Application run with :"+tomcat.getConnector().getDomain()+" "+tomcat.getHost().getName()+":"+tomcat.getConnector().getPort());
+		logger.info("Web Application run with :"+tomcat.getConnector().getDomain()+" "+tomcat.getHost().getName()+":"+tomcat.getConnector().getPort());
 		//设置基本路径
 		setHostAppBase(pluginBoot);
 		//配置ServletContext的监听
@@ -303,7 +305,7 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
 		}else {
 			docBase = webContext.docBase();
 		}
-		log.info("Web Application Context Info, Context Path:"+webContext.contextPath()+", Doc Base:"+docBase);
+		logger.info("Web Application Context Info, Context Path:"+webContext.contextPath()+", Doc Base:"+docBase);
 		org.apache.catalina.Context ctx = tomcat.addContext(webContext.contextPath(), docBase);// 网络访问路径
 		ctx.setInstanceManager(new SimpleInstanceManager());
 		ctx.addLifecycleListener(new ContextConfig() {
@@ -322,7 +324,7 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
 							listener.contextInitialized(sce);
 						}
 					} catch (Exception e) {
-						log.debug("none any servlet context listener register found ! {}",e.getMessage());
+						logger.debug("none any servlet context listener register found ! {}",e.getMessage());
 					}
 					b = true;
 				}

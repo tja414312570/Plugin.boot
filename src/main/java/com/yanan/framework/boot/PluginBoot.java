@@ -23,5 +23,9 @@ public @interface PluginBoot {
 	 * @return
 	 */
 	String appBase() default "user.dir";
+	/**
+	 * 引导环境
+	 */
+	Class<? extends EnvironmentBoot> enviromentBoot() default EnvironmentBoot.class;
 	
 }
