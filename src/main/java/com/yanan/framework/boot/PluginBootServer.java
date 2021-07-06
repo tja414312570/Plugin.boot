@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.catalina.LifecycleException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -205,8 +206,14 @@ public class PluginBootServer {
 			PlugsFactory.getInstance().addScanPath(pluginBoot.contextClass());
 			log.info("Plugin Application Context Path "+Arrays.toString(ResourceManager.getClassPath(pluginBoot.contextClass())));
 		}
-		if(!pluginBoot.enviromentBoot().equals(EnvironmentBoot.class)) {
-			environment.setVariable("-environment-boot", pluginBoot.enviromentBoot().getName());
+		if(pluginBoot != null) {
+			if(!pluginBoot.enviromentBoot().equals(EnvironmentBoot.class)) {
+				environment.setVariable("-environment-boot", pluginBoot.enviromentBoot().getName());
+			}
+			if(StringUtils.isNotEmpty(pluginBoot.scnner())) {
+				environment.setVariable("-environment-scan", pluginBoot.scnner());
+				PlugsFactory.getInstance().addScanPath(pluginBoot.scnner());
+			}
 		}
 		PlugsFactory.init();
 	}

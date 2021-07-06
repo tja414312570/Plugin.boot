@@ -17,8 +17,8 @@ public class NacosConfigureFactory {
 	private static final int CONF = 0;
 	private static final int PROPERTIES = 1;
 	public static Properties build(Config config) {
-		Assert.isNull(config, "nacos config is null");
-		Assert.isFalse(config.hasPath("nacos"), "could not found nacos config at this config "+config);
+		Assert.isNotNull(config, "nacos config is null");
+		Assert.isNotFalse(config.hasPath("nacos"), "could not found nacos config at this config "+config);
 		Properties properties = new Properties();
 		config = config.getConfig("nacos");
 		config.allowKeyNull();
@@ -34,9 +34,9 @@ public class NacosConfigureFactory {
 		return properties;
 	}
 	public static Properties build(String filePath) throws IOException {
-		Assert.isNull(filePath, "nacos config name is null");
+		Assert.isNotNull(filePath, "nacos config name is null");
 		Resource resourceManager =ResourceManager.getResource(filePath);
-		Assert.isNull(resourceManager,"the ant config file ["+filePath+"] is not exists!");
+		Assert.isNotNull(resourceManager,"the ant config file ["+filePath+"] is not exists!");
 		if(filePath.endsWith(".yc")) {
 			return build(resourceManager.getInputStream(),CONF);
 		}
@@ -46,7 +46,7 @@ public class NacosConfigureFactory {
 		throw new AntInitException("the type of this file is not be support!");
 	}
 	public static Properties build(InputStream inputStream,int type) {
-		Assert.isNull(inputStream, "nacos config is null");
+		Assert.isNotNull(inputStream, "nacos config is null");
 		try {
 			switch(type) {
 				case CONF:

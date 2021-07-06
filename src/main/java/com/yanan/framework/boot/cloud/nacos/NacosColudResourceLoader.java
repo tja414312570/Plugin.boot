@@ -23,13 +23,13 @@ public class NacosColudResourceLoader implements ResourceLoader{
 
 	@Override
 	public Resource getResource(String path) {
-		Assert.isNull(path,"resource path is null!");
+		Assert.isNotNull(path,"resource path is null!");
 		logger.info("download resource from "+path);
 		int pathTokenIndex = path.indexOf(':');
 		if(pathTokenIndex != -1)
 			path = path.substring(pathTokenIndex+1);
 		int pathIndex = path.indexOf('/');
-		Assert.isTrue(pathIndex == -1,"resource path ["+path+"] incorrect!");
+		Assert.isNotTrue(pathIndex == -1,"resource path ["+path+"] incorrect!");
 		String groupId = path.substring(0,pathIndex);
 		String dataId = path.substring(pathIndex+1);
 		try {
