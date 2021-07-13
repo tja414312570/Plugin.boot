@@ -6,6 +6,7 @@ import java.util.Arrays;
 import org.apache.catalina.LifecycleException;
 
 import com.typesafe.config.Config;
+import com.yanan.framework.boot.BootArgs;
 import com.yanan.framework.boot.Plugin;
 import com.yanan.framework.boot.PluginBoot;
 import com.yanan.framework.boot.PluginBootServer;
@@ -30,7 +31,7 @@ import com.yanan.utils.string.PathMatcher.Matcher;
 @PluginBoot()
 @WebPluginBoot(port = 8888)
 //@BootArgs(name="-environment-boot",value="com.yanan.framework.boot.StandEnvironmentBoot")
-//@BootArgs(name="-boot-configure",value="boot.yc")
+@BootArgs(name="-boot-configure",value="boot.yc")
 @Plugin(PluginWiredHandler.class)
 public class WEBPluginBootServerTest {
 //	? * **

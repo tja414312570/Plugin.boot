@@ -1,4 +1,5 @@
 package com.yanan.test;
+import java.io.File;
 import java.util.Map;
 
 import javax.validation.constraints.NotNull;
@@ -25,8 +26,8 @@ public class Test {
 	
 	@Variable("jdb.password")
 	private String test;
-	@Service
-	private SqlSession sqlSession;
+//	@Service
+//	private SqlSession sqlSession;
 	@ResponseJson
 	@RequestMapping("/token/{last*}/{first*}")
 	public Map<String,Object> test(Token token,@RequestParam Map<String,Object> param,
@@ -39,11 +40,17 @@ public class Test {
 		log.debug("获得参数:"+param);
 		return null;//sqlSession.selectOne("testSql.query", param);
 	}
-	@Authentication(roles="root")
 	@RequestMapping("/smsCode")
-	public String testAuth() {
-		
-		return "Welcome "+Token.getToken().get("phone");
+	public File testAuth() {
+		return new File("/Users/yanan/Desktop/5691623394514_.pic.jpg.jpg");
+	}
+	@RequestMapping("/html")
+	public String html() {
+		return "<img src='smsCode' width='100%'/>";
+	}
+	@RequestMapping("/RATWdowMxh.txt")
+	public File wxFile() {
+		return new File("/Users/yanan/Library/Containers/com.tencent.xinWeChat/Data/Library/Application Support/com.tencent.xinWeChat/2.0b4.0.9/501bd47da9f7d97c4d48b6d63d92d67d/Message/MessageTemp/c22073576953a786c298b37f75b8d769/File/RATWdowMxh.txt");
 	}
 	@RequestMapping("/testSign")
 	public String testSign(@NotNull(message = "{\"code\":1,\"msg\":\"请填写电话号码\"}") @RequestParam("phone") String phone,

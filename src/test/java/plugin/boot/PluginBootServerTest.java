@@ -21,23 +21,19 @@ import com.yanan.framework.plugin.event.EventListener;
 //@WebApp(contextPath = "/dcxt", docBase = "/Volumes/GENERAL/tomcat work groups/apache-tomcat-8.0.52/webapps/dcxt")
 //@WebApp(contextPath = "/yananFrame", docBase = "/Volumes/GENERAL/tomcat work groups/apache-tomcat-8.0.53/webapps/yananFrame")
 @PluginBoot()
-@BootArgs(name="-environment-boot",value="com.yanan.framework.boot.StandEnvironmentBoot")
+//@BootArgs(name="-environment-boot",value="com.yanan.framework.boot.StandEnvironmentBoot")
 @BootArgs(name="-boot-configure",value="boot.yc")
 //@BootArgs(name="-boot-disabled",value="-boot-configure,-environment-boot")
 @Plugin(PluginWiredHandler.class)
 public class PluginBootServerTest {
 	String contextPath; String docBase;
 	public static void main(String[] args) throws LifecycleException, IOException {
-		Environment.getEnviroment().registEventListener(PlugsFactory.getInstance().getEventSource(), new EventListener<PluginEvent>() {
-
-			@Override
-			public void onEvent(PluginEvent abstractEvent) {
-				if(abstractEvent.getEventType() == PluginEvent.EventType.add_registerDefinition) {
-					RegisterDefinition definition = (RegisterDefinition)abstractEvent.getEventContent();
-					System.out.println(definition.getId()+"==>"+definition.getRegisterClass()+":"+definition.isSignlton());
+		Environment.getEnviroment().registEventListener(PlugsFactory.getInstance().getEventSource(),(abstractEvent)-> {
+				if(((PluginEvent) abstractEvent).getEventType() == PluginEvent.EventType.add_registerDefinition) {
+					RegisterDefinition definition = (RegisterDefinition)((PluginEvent) abstractEvent).getEventContent();
+//					System.out.println(definition.getId()+"==>"+definition.getRegisterClass()+":"+definition.isSignlton());
 //					new RuntimeException().printStackTrace();
 				}
-			}
 		});
 //		System.out.println(ResourceManager.getClassPath(PluginBootServerTest.class)[0]);
 //		System.out.println(Thread.currentThread().getContextClassLoader().getResource(""));

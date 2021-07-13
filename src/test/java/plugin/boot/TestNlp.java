@@ -1,16 +1,11 @@
 package plugin.boot;
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 
 import com.yanan.framework.plugin.PlugsFactory;
 import com.yanan.framework.resource.DefaultResourceLoader;
 import com.yanan.framework.resource.ResourceLoader;
-import com.yanan.utils.resource.FileUtils;
-import com.yanan.utils.resource.ResourceManager;
-import com.yanan.utils.string.PathMatcher;
-import com.yanan.utils.string.StringUtil;
+import com.yanan.utils.resource.Resource;
 
 public class TestNlp {
 	public static void main(String[] args) throws IllegalAccessException, IOException {
@@ -21,7 +16,12 @@ public class TestNlp {
 		PlugsFactory.getInstance().addScanPath("classpath:**");
 		PlugsFactory.init("classpath:plugin.yc");
 		ResourceLoader resourceLoaer = new DefaultResourceLoader();
-		resourceLoaer.getResource("https://ags.bgzchina.com:8999/proxy/v1/FTR/file/clientUpload");
+		Resource resource = resourceLoaer.getResource("https://www.linuxprobe.com/block-string-device.html");
+		
+		int len = (int) resource.size();
+		byte[] bytes = new byte[len];
+		resource.getInputStream().read(bytes);
+		System.out.println(new String(bytes));
 		
 	}
 }

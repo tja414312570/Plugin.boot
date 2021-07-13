@@ -10,9 +10,9 @@ properties:[
 #模块配置
 includes:[
 	"classpath:plugin.yc",
-	"classpath:boot.cloud.yc",
+	#"classpath:boot.cloud.yc",
 	#"classpath:boot.jdb.yc",
-	#"classpath:boot.mvc.yc",
+	"classpath:boot.mvc.yc",
 	#"Ant.yc"
 ]
 ##标准引导参数
