@@ -29,7 +29,7 @@ public class NacosColudResourceLoader implements ResourceLoader{
 		if(pathTokenIndex != -1)
 			path = path.substring(pathTokenIndex+1);
 		int pathIndex = path.indexOf('/');
-		Assert.isNotTrue(pathIndex == -1,"resource path ["+path+"] incorrect!");
+		Assert.isFalse(pathIndex == -1,"resource path ["+path+"] incorrect!");
 		String groupId = path.substring(0,pathIndex);
 		String dataId = path.substring(pathIndex+1);
 		try {
