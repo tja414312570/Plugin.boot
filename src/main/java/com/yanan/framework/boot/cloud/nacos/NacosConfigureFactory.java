@@ -18,7 +18,7 @@ public class NacosConfigureFactory {
 	private static final int PROPERTIES = 1;
 	public static Properties build(Config config) {
 		Assert.isNotNull(config, "nacos config is null");
-		Assert.isNotFalse(config.hasPath("nacos"), "could not found nacos config at this config "+config);
+		Assert.isTrue(config.hasPath("nacos"), "could not found nacos config at this config "+config);
 		Properties properties = new Properties();
 		config = config.getConfig("nacos");
 		config.allowKeyNull();
