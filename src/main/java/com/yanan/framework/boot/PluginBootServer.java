@@ -4,12 +4,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.catalina.LifecycleException;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +20,8 @@ import com.yanan.framework.boot.web.WebEnvironmentBoot;
 import com.yanan.framework.plugin.Environment;
 import com.yanan.framework.plugin.PlugsFactory;
 import com.yanan.framework.resource.ResourceLoaderException;
+import com.yanan.utils.CollectionUtils;
+import com.yanan.utils.IOUtils;
 import com.yanan.utils.resource.Resource;
 import com.yanan.utils.resource.ResourceManager;
 import com.yanan.utils.string.StringUtil;
@@ -129,22 +132,28 @@ public class PluginBootServer {
 			String[] argArray = arg.split("=");
 			environment.setVariable(argArray[0],argArray.length>1? argArray[1]:null);
 		}
-		Resource resource;
+		List<Resource> resourceList = new ArrayList<>();
 		String disableConfig = environment.getVariable("-boot-disabled");
 		if(StringUtil.isNotBlank(disableConfig)) {
 			environment.removeVariable(disableConfig.split(","));
 		}
 		String bootYc = environment.getVariable("-boot-configure");
 		if(!StringUtil.isEmpty(bootYc)) {
-			resource = ResourceManager.getResource(bootYc);
-			if(resource == null)
-				resource = ResourceManager.getResource("classpath:"+bootYc);
-			if(resource == null)
+			resourceList = ResourceManager.getResourceList(bootYc);
+			if(CollectionUtils.isEmpty(resourceList)) {
+				resourceList = ResourceManager.getResourceList("classpath:"+bootYc);
+			}
+			if(CollectionUtils.isEmpty(resourceList)) {
 				throw new PluginBootException("Could not found config resource :"+bootYc);
+			}
 		}else {
-			resource = ResourceManager.getResource("classpath:boot.yc");
+			try {
+				resourceList.add(ResourceManager.getResource("classpath:boot.yc"));
+			}catch (Exception e) {
+				resourceList = ResourceManager.getResourceList("classpath:**.yc");
+			}
 		}
-		if(resource != null) {
+		resourceList.forEach(resource->{
 			InputStream inputStream = null;
 			Reader reader = null;
 			try {
@@ -158,29 +167,20 @@ public class PluginBootServer {
 			} catch (IOException e) {
 				throw new ResourceLoaderException(e);
 			}finally {
-				if(reader != null)
-					try {
-						reader.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				if(inputStream != null)
-					try {
-						inputStream.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+				IOUtils.close(reader);
+				IOUtils.close(inputStream);
 			}
-			disableConfig = environment.getVariable("-boot-disabled");
-			if(StringUtil.isNotBlank(disableConfig)) {
-				environment.removeVariable(disableConfig.split(","));
-			}
+		});
+		disableConfig = environment.getVariable("-boot-disabled");
+		if(StringUtil.isNotBlank(disableConfig)) {
+			environment.removeVariable(disableConfig.split(","));
 		}
 	}
 	private static Class<?> deduceMainClass() {
 		StackTraceElement[] stacks = new RuntimeException().getStackTrace();
 		Class<?> mainClass = null;
-		for(StackTraceElement stack : stacks) {
+		for(int i = stacks.length-1 ; i>-1 ; i--) {
+			StackTraceElement stack = stacks[i];
 			if(StringUtil.equals(stack.getMethodName(), "main")) {
 				try {
 					mainClass = Class.forName(stack.getClassName());
@@ -210,11 +210,12 @@ public class PluginBootServer {
 			if(!pluginBoot.enviromentBoot().equals(EnvironmentBoot.class)) {
 				environment.setVariable("-environment-boot", pluginBoot.enviromentBoot().getName());
 			}
-			if(StringUtils.isNotEmpty(pluginBoot.scnner())) {
+			if(StringUtil.isNotEmpty(pluginBoot.scnner())) {
 				environment.setVariable("-environment-scan", pluginBoot.scnner());
 				PlugsFactory.getInstance().addScanPath(pluginBoot.scnner());
 			}
 		}
+		log.info("prepared init plugin enviorment");
 		PlugsFactory.init();
 	}
 }
