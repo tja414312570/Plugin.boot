@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.util.List;
 
 import com.yanan.utils.resource.Resource;
@@ -78,5 +79,10 @@ public class NacosCloudConfigResource implements Resource{
 	public NacosConfigRuntime getNacosConfigRuntime() {
 		return nacosConfigRuntime;
 	}
+	@Override
+	public URI getURI() {
+		throw new UnsupportedOperationException();
+	}
+	
 
 }
