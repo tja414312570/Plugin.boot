@@ -6,7 +6,9 @@ import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.Filter;
 import javax.servlet.ServletContextEvent;
@@ -32,15 +34,19 @@ import org.apache.tomcat.util.net.SSLHostConfigCertificate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.typesafe.config.ConfigFactory;
 import com.yanan.framework.boot.EnvironmentBoot;
 import com.yanan.framework.boot.StandEnvironmentBoot;
 import com.yanan.framework.plugin.Environment;
+import com.yanan.framework.plugin.PluginAppincationContext;
 import com.yanan.framework.plugin.PlugsFactory;
 import com.yanan.framework.plugin.annotations.Register;
 import com.yanan.framework.plugin.annotations.Service;
 import com.yanan.framework.token.web.TokenContextInit;
 import com.yanan.framework.token.web.TokenFilter;
+import com.yanan.framework.webmvc.Config_MVC_Constant;
 import com.yanan.framework.webmvc.CoreDispatcher;
+import com.yanan.framework.webmvc.ServerContext;
 import com.yanan.framework.webmvc.ServletContextInit;
 import com.yanan.utils.reflect.AppClassLoader;
 import com.yanan.utils.reflect.ReflectUtils;
@@ -222,6 +228,17 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
      * @param pluginBoot
      */
 	public void addPluginContext(Class<?> configure, WebPluginBoot pluginBoot) {
+		ServerContext context = ServerContext.getContext();
+		Map<String,String> map = new HashMap<>();
+		Environment enviroment = Environment.getEnviroment();
+		Map<String,Object> mvc = new HashMap<>();
+		mvc.put("mvc", map);
+		map.put(Config_MVC_Constant.MVC_PACKAGES, enviroment.getVariable("-environment-scan"));
+		enviroment.mergeConfig(ConfigFactory.parseMap(mvc));
+		context.setConfig(null);
+		//plugin boot 
+		if(Environment.getEnviroment().getVariable(Environment.MAIN_CLASS) != null)
+			return;
 		if (pluginBoot == null || pluginBoot.contextClass().length == 0) {
 			// 将class文件上下文添加到Plug中
 			PlugsFactory.getInstance().addScanPath(configure);
@@ -316,8 +333,8 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
 				if (event.getLifecycle().getState().equals(LifecycleState.STARTING_PREP) && !b) {
 					ServletContextEvent sce = new ServletContextEvent(sc.getServletContext());
 //					new PluginAppincationContext().contextInitialized(sce);
-					new ServletContextInit().contextInitialized(sce);
-					new TokenContextInit().contextInitialized(sce);
+//					new ServletContextInit().contextInitialized(sce);
+//					new TokenContextInit().contextInitialized(sce);
 					try {
 						List<ServletContextListener> lists = PlugsFactory.getPluginsInstanceList(ServletContextListener.class);
 						for(ServletContextListener listener : lists) {
@@ -335,11 +352,11 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
 		});
 		//添加核心Servlet
 		Tomcat.addServlet(ctx, "coreServlet", new CoreDispatcher()); 
-		ctx.addServletMappingDecoded("/*", "coreServlet");
+		ctx.addServletMappingDecoded(webContext.contextPath()+"*", "coreServlet");
 		//添加过滤器
 		addFilter(ctx,mainClass);
 		//增加WebApp
-		addWebApp(mainClass);
+		//addWebApp(mainClass);
 		try {
 			tomcat.init();
 			tomcat.start();
@@ -348,6 +365,7 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
 			System.exit(0);
 			new WebPluginBootExcetion("failed to init tomcat;",e);
 		}
+		logger.info("tomcat start at "+pluginBoot.host()+":"+pluginBoot.port()+webContext.contextPath());
 		tomcat.getServer().await();
 		
 	}

@@ -59,6 +59,8 @@ public class PluginBootServer {
 		Map<String,String> globalConfigureMap = new HashMap<String,String>();
 		globalConfigureMap.put("-boot-server", "plugin-boot");
 		globalConfigureMap.put("-boot-server-version", "0.0.1-snapshot");
+		globalConfigureMap.put(Environment.MAIN_CLASS, mainClass.getName());
+		globalConfigureMap.put(Environment.MAIN_CLASS_PATH, mainClassPath);
 		Config globalConfig = ConfigFactory.parseMap(globalConfigureMap);
 		environment.mergeConfig(globalConfig);
 		//解析参数
