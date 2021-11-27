@@ -298,6 +298,7 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
 
 	public void start(Environment environment) {
 		logger.info("plugin boot environment in web [tomcat]");
+		long now = System.currentTimeMillis();
 		super.start(environment);
 		Class<?> mainClass = environment.getVariable(Environment.MAIN_CLASS);
 		WebPluginBoot pluginBoot = mainClass.getAnnotation(WebPluginBoot.class);
@@ -362,6 +363,7 @@ public class WebEnvironmentBoot extends StandEnvironmentBoot implements Environm
 			System.exit(0);
 			new WebPluginBootExcetion("failed to init tomcat;",e);
 		}
+		logger.info("web environment model loaded at ["+(System.currentTimeMillis()-now)+" ms]");
 		logger.info("tomcat start at "+pluginBoot.host()+":"+pluginBoot.port()+webContext.contextPath());
 		tomcat.getServer().await();
 		
