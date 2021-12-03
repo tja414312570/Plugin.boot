@@ -40,7 +40,7 @@ public class TestHash {
 //		result = hashFile.get("key".getBytes());
 //		System.out.println(new String(result));
 //		System.out.println(hashFile.get("key-1".getBytes()));
-		long len = 100000000;
+		long len = 200000000;
 		byte[] bytes = new byte[8];
 		for(long i = 0;i<len;i++) {
 			if(i % 1000000 == 0)
