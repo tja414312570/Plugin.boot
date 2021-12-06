@@ -28,7 +28,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.yanan.framework.plugin.hot;
+package com.yanan.framework.moniter;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Handle;

@@ -1,4 +1,4 @@
-package com.yanan.framework.plugin.hot;
+package com.yanan.framework.moniter;
 
 import java.io.File;
 import java.math.BigInteger;
@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
+import java.util.function.BiConsumer;
 import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
@@ -112,6 +112,13 @@ public class PluginEnviromentFileMoniter implements Runnable{
 	@Override
 	public void run() {
 		final ContextPath currentContextPath = new ContextPath(null, null);
+		BiConsumer<File,String> consumer = (item,path)->{
+			try {
+				found(item,path);
+			}catch(Exception e) {
+				logger.error("a error occur,sorry !",e);
+			}
+		};
 		while (true) {
 			if (this.contextPathList.isEmpty())
 				break;
@@ -121,7 +128,7 @@ public class PluginEnviromentFileMoniter implements Runnable{
 				path.filter(contextPath.getFilter());
 				currentContextPath.setContextPath(contextPath.getContextPath());
 				currentContextPath.setFilter(contextPath.getFilter());
-				path.scanner(file->found(file,contextPath.contextPath));
+				path.scanner(file->consumer.accept(file,contextPath.contextPath));
 				// 如果是第一次之后的扫描 需要将已删除的文件找出来
 			}
 			foundRemove();

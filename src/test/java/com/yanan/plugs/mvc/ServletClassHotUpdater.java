@@ -6,8 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yanan.framework.plugin.annotations.Register;
-import com.yanan.framework.plugin.hot.ClassUpdateListener;
 import com.yanan.framework.webmvc.RestfulDispatcher;
+import com.yanan.framework.moniter.ClassUpdateListener;
 import com.yanan.framework.plugin.PlugsFactory;
 
 @Register(attribute = "com.yanan.billing.controller.*")

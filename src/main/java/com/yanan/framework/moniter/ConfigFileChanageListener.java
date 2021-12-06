@@ -1,4 +1,4 @@
-package com.yanan.framework.plugin.hot;
+package com.yanan.framework.moniter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,6 +14,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValue;
 import com.yanan.framework.plugin.Environment;
+import com.yanan.framework.plugin.PlugsFactory;
 import com.yanan.framework.plugin.annotations.Register;
 import com.yanan.framework.plugin.annotations.Service;
 import com.yanan.framework.plugin.autowired.enviroment.VariableProcesser;
@@ -35,7 +36,8 @@ public class ConfigFileChanageListener implements PluginFileChanageListener{
 				Environment.getEnviroment().mergeConfig(config);
 				changeList.forEach(key->{
 					logger.info("update key : "+key+",value:"+Environment.getEnviroment().getConfigValue(key).unwrapped());
-					VariableProcesser.updateVaiable(key);
+					List<ConfigValueChanageListener> list = PlugsFactory.getPluginsInstanceListByAttribute(ConfigValueChanageListener.class, key);
+					list.forEach(item->item.onChange(key));
 				});
 			}
 		} catch (FileNotFoundException e) {

@@ -163,9 +163,6 @@ public class PluginBootServer {
 				reader = new InputStreamReader(inputStream);
 				Config config = ConfigFactory.parseReader(reader);
 				environment.mergeConfig(config);
-				config.entrySet().forEach(entry->{
-					environment.setVariable(entry.getKey(), entry.getValue().unwrapped());
-				});;
 			} catch (IOException e) {
 				throw new ResourceLoaderException(e);
 			}finally {
