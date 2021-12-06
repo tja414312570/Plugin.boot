@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import com.yanan.framework.plugin.PlugsFactory;
 import com.yanan.framework.plugin.annotations.Register;
 import com.yanan.framework.plugin.annotations.Service;
+import com.yanan.framework.plugin.builder.PluginDefinitionBuilderFactory;
 import com.yanan.framework.plugin.definition.RegisterDefinition;
 import com.yanan.utils.reflect.AppClassLoader;
 import com.yanan.utils.reflect.ReflectUtils;
@@ -59,11 +60,11 @@ public class ClassFileChanageListener implements PluginFileChanageListener {
 				clzz = Class.forName(clzzName);
 			} catch (Exception e) {
 			}
-			java.lang.ClassLoader loader = clzz == null ? this.getClass().getClassLoader()
+			ClassLoader loader = clzz == null ? this.getClass().getClassLoader()
 					: clzz.getClassLoader();
 			if(clzz != null) {
 					byte[] content = FileUtils.getBytes(newFile);
-					String className = clzzName + "$Y" + System.currentTimeMillis();
+					String className = clzzName + "$PLUGIN_" + System.currentTimeMillis();
 					// 无轮是否加载成功都应该记录
 					Class<?> nc = loadClass(loader, className, clzzName, content);
 					if (!checkClass(nc))
@@ -73,7 +74,12 @@ public class ClassFileChanageListener implements PluginFileChanageListener {
 					if (registerDescription != null) {
 						if (registerDescription.getLinkRegister() != null)
 							clzz = registerDescription.getLinkRegister().getRegisterClass();
-//						registerDescription.updateRegister(nc);
+						//删除原容器
+						RegisterDefinition newRegisterDefinition = PluginDefinitionBuilderFactory
+								.builderRegisterDefinition(nc);
+						PlugsFactory.getInstance().removeRegister(registerDescription);
+						PlugsFactory.getInstance().addRegisterDefinition(newRegisterDefinition);
+						PlugsFactory.getInstance().refresh();
 					} else
 						tryAddPlugs(nc);
 					proxy.put(clzz, nc);
