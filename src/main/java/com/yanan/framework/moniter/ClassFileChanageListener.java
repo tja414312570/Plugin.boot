@@ -52,12 +52,16 @@ public class ClassFileChanageListener implements PluginFileChanageListener {
 	}
 	@Override
 	public void onChange(File newFile,String scanPath) {
-		System.err.println("类文件改变:"+"==>"+newFile);
 		String clzzName = getClassName(newFile.getAbsolutePath(), scanPath);
 		try {
-			Class<?> clzz = Class.forName(clzzName);
+			Class<?> clzz = null;
+			try {
+				clzz = Class.forName(clzzName);
+			} catch (Exception e) {
+			}
 			java.lang.ClassLoader loader = clzz == null ? this.getClass().getClassLoader()
 					: clzz.getClassLoader();
+			if(clzz != null) {
 					byte[] content = FileUtils.getBytes(newFile);
 					String className = clzzName + "$Y" + System.currentTimeMillis();
 					// 无轮是否加载成功都应该记录
@@ -76,17 +80,16 @@ public class ClassFileChanageListener implements PluginFileChanageListener {
 					notifyListener(clzz, nc, new AppClassLoader().loadClass(clzzName, content), newFile);// 通知修改
 					logger.debug(clzzName + "  update success!");
 
-//			} else {// 如果之前没有加载该类
-//				Class<?> nc = clzz;
-//				if (nc == null)
-//					nc = loadClass(loader, clzzName, FileUtils.getBytes(file));
-//				fileToken.put(fileMark, new FileToken(hash(file, FileUtils.getBytes(file)), lastModif));
-//				if (!checkClass(nc))
-//					return;
-//				tryAddPlugs(nc);
-//				notifyListener(null, nc, null, file);// 通知添加
-//				log.debug(clzzName + "  add success!");
-//			}
+			} else {// 如果之前没有加载该类
+				Class<?> nc = clzz;
+				if (nc == null)
+					nc = loadClass(loader, clzzName, FileUtils.getBytes(newFile));
+				if (!checkClass(nc))
+					return;
+				tryAddPlugs(nc);
+				notifyListener(null, nc, null, newFile);// 通知添加
+				logger.debug(clzzName + "  add success!");
+			}
 		} catch (Throwable e) {
 			logger.error("failed to update class \"" + clzzName + "\"", e);
 		}

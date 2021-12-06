@@ -17,7 +17,6 @@ import com.yanan.framework.plugin.Environment;
 import com.yanan.framework.plugin.PlugsFactory;
 import com.yanan.framework.plugin.annotations.Register;
 import com.yanan.framework.plugin.annotations.Service;
-import com.yanan.framework.plugin.autowired.enviroment.VariableProcesser;
 
 @Register(attribute = "*.yc")
 public class ConfigFileChanageListener implements PluginFileChanageListener{
