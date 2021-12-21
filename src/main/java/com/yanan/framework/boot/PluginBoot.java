@@ -17,7 +17,7 @@ public @interface PluginBoot {
 	/**
 	 * 扫描位置
 	 */
-	String scnner() default "";
+	String[] scnner() default {};
 	/**
 	 * 项目目录
 	 * @return

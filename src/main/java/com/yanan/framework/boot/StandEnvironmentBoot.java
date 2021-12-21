@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.Properties;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -19,6 +18,8 @@ import com.typesafe.config.impl.SimpleConfigObject;
 import com.yanan.framework.plugin.Environment;
 import com.yanan.framework.plugin.Plugin;
 import com.yanan.framework.plugin.PlugsFactory;
+import com.yanan.framework.plugin.annotations.Register;
+import com.yanan.framework.plugin.annotations.Service;
 import com.yanan.framework.plugin.autowired.property.PropertyManager;
 import com.yanan.framework.plugin.builder.PluginDefinitionBuilderFactory;
 import com.yanan.framework.plugin.decoder.ResourceDecoder;
@@ -35,14 +36,18 @@ import com.yanan.utils.resource.ResourceNotFoundException;
  * @author yanan
  *
  */
+@Register
 public class StandEnvironmentBoot implements EnvironmentBoot{
-	Logger log = LoggerFactory.getLogger(StandEnvironmentBoot.class);
+	@Service
+	private Logger log;
 	public void tryDeducePluginDefinitionAndAddDefinition(ConfigValue configValue) {
 		try {
 			if (configValue == null)
 				throw new PluginBootException("conf is null");
 			Object plugin = null;
 			if (configValue.valueType() == ConfigValueType.STRING) {
+				if(((String)configValue.unwrapped()).startsWith("com.yanan.framework."))
+					return;
 				Class<?> clzz = Class.forName((String) configValue.unwrapped());
 				plugin = PluginDefinitionBuilderFactory.builderPluginDefinitionAuto(clzz);
 			} else if (configValue.valueType() == ConfigValueType.OBJECT) {
@@ -58,6 +63,11 @@ public class StandEnvironmentBoot implements EnvironmentBoot{
 		}
 	}
 	public void loadModelPlugin(Environment environment) {
+		if(environment.getVariable("-environment-scan") != null) {
+			PlugsFactory.getInstance().addScanPath((String[])environment.getVariable("-environment-scan"));
+		}else {
+			PlugsFactory.getInstance().addScanPath("classpath*:**");
+		}
 		Config config = environment.getConfigure();
 		config.allowKeyNull();
 		ConfigList configList = config.getList("plugins");

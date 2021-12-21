@@ -8,7 +8,7 @@ import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
 import com.yanan.framework.ant.utils.SerialUtils;
 
-public class AbstractHashMap extends HashFile{
+public class AbstractHashMap extends HashFile {
 	private long size;
 	private ByteBufferOutput byteBufferOutput;
 	public AbstractHashMap() {

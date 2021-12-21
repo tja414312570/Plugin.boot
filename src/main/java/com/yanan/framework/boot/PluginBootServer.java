@@ -20,6 +20,7 @@ import com.yanan.framework.boot.web.WebEnvironmentBoot;
 import com.yanan.framework.plugin.Environment;
 import com.yanan.framework.plugin.PlugsFactory;
 import com.yanan.framework.resource.ResourceLoaderException;
+import com.yanan.utils.ArrayUtils;
 import com.yanan.utils.CollectionUtils;
 import com.yanan.utils.IOUtils;
 import com.yanan.utils.resource.Resource;
@@ -41,6 +42,7 @@ public class PluginBootServer {
 	 * @throws LifecycleException
 	 */
 	public static void run(String... args) {
+		try {
 		log.info("Plugin Boot Snapshot Version!");
 		printLogo();
 		long startTime = System.currentTimeMillis();
@@ -79,6 +81,9 @@ public class PluginBootServer {
 		//引导启动
 		long times = System.currentTimeMillis()-startTime;
 		log.info("Application started at "+times+"[ms]");
+		}catch (Exception e) {
+			log.error("failed boot application",e);
+		}
 	}
 	private static void printLogo() {
 		log.debug("");
@@ -197,21 +202,18 @@ public class PluginBootServer {
 	 * @param environment 
      */
 	public static void addPluginContext(Class<?> configure, PluginBoot pluginBoot, Environment environment) {
-		if (pluginBoot == null || pluginBoot.contextClass().length == 0) {
-			// 将class文件上下文添加到Plug中
-			PlugsFactory.getInstance().addScanPath(configure);
-			log.info("Plugin Application Context Path "+Arrays.toString(ResourceManager.getClassPath(configure)));
-		} else {
-			PlugsFactory.getInstance().addScanPath(pluginBoot.contextClass());
-			log.info("Plugin Application Context Path "+Arrays.toString(ResourceManager.getClassPath(pluginBoot.contextClass())));
-		}
+		log.info("init plugin boot enviroment");
+		PlugsFactory.getInstance().addDefinition(PluginBootSourceDecoder.class);
+		PlugsFactory.getInstance().addResource(new PluginBootSource());
+		// 将class文件上下文添加到Plug中
+		log.info("Plugin Application Context Path "+Arrays.toString(ResourceManager.getClassPath(configure)));
 		if(pluginBoot != null) {
 			if(!pluginBoot.enviromentBoot().equals(EnvironmentBoot.class)) {
 				environment.setVariable("-environment-boot", pluginBoot.enviromentBoot().getName());
 			}
-			if(StringUtil.isNotEmpty(pluginBoot.scnner())) {
+			if(ArrayUtils.isNotEmpty(pluginBoot.scnner())) {
 				environment.setVariable("-environment-scan", pluginBoot.scnner());
-				PlugsFactory.getInstance().addScanPath(pluginBoot.scnner());
+//				PlugsFactory.getInstance().addScanPath(pluginBoot.scnner());
 			}
 		}
 		log.info("prepared init plugin enviorment");
