@@ -176,6 +176,7 @@ public class StandEnvironmentBoot implements EnvironmentBoot{
 	}
 	@Override
 	public void start(Environment environment) {
+		PlugsFactory.getInstance().addPlugininDefinition(PluginApplication.class);
 		environment.setVariable("-environment-boot-instance", this);
 		long now = System.currentTimeMillis();
 		loadEnvironmentProperties(environment);
@@ -183,6 +184,10 @@ public class StandEnvironmentBoot implements EnvironmentBoot{
 		now = System.currentTimeMillis();
 		loadModelPlugin(environment);
 		log.info("environment model loaded at ["+(System.currentTimeMillis()-now)+" ms]");
+		List<PluginApplication> pluginApplications = PlugsFactory.getPluginsInstanceList(PluginApplication.class);
+		pluginApplications.forEach(app->{
+			app.start();
+		});
 	}
 
 	@Override

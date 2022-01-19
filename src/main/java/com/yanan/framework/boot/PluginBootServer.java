@@ -135,6 +135,7 @@ public class PluginBootServer {
 				environment.setVariable(bootArg.name(),bootArg.value());
 			}
 		}
+		environment.setVariable(Environment.MAIN_ARGS, args);
 		for(String arg : args) {
 			String[] argArray = arg.split("=");
 			environment.setVariable(argArray[0],argArray.length>1? argArray[1]:null);
