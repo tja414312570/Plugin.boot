@@ -7,10 +7,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
+ * 引导参数设置
  * @author yanan
  *
  */
 @Retention(RUNTIME)
 @Target({ ElementType.FIELD })
-public @interface Bind {
+public @interface BindStage {
 }
