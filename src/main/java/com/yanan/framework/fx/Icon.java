@@ -7,12 +7,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * 布局文件
+ * 使用菜单资源
  * @author yanan
  *
  */
 @Retention(RUNTIME)
 @Target({ TYPE })
-public @interface ContextView {
+public @interface Icon {
 	String value() default "";
 }

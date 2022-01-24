@@ -1,4 +1,4 @@
-package com.yanan.framework.boot;
+package com.yanan.framework.fx;
 
 import java.io.File;
 import java.io.IOException;
@@ -159,7 +159,7 @@ public class LauncherImpl {
                     + " is not a subclass of javafx.application.Preloader");
         }
 
-//        System.err.println("launch standalone app: preloader class = "
+//        throw new RuntimeException("launch standalone app: preloader class = "
 //                + preloaderClass);
 
         // Create a new Launcher thread and then wait for that thread to finish
@@ -211,7 +211,7 @@ public class LauncherImpl {
             final String[] args) {
 
         if (verbose) {
-            System.err.println("Java 8 launchApplication method: launchMode="
+            throw new RuntimeException("Java 8 launchApplication method: launchMode="
                     + launchMode);
         }
 
@@ -242,7 +242,7 @@ public class LauncherImpl {
                     fxClassPath = null;
                 } else {
                     if (verbose) {
-                        System.err.println("WARNING: Application jar uses deprecated JavaFX-Class-Path attribute."
+                        throw new RuntimeException("WARNING: Application jar uses deprecated JavaFX-Class-Path attribute."
                                +" Please use Class-Path instead.");
                     }
 
@@ -370,7 +370,7 @@ public class LauncherImpl {
 //            Method mainMethod = tempAppClass.getMethod("main",
 //                    new Class[] { (new String[0]).getClass() });
 //            if (verbose) {
-//                System.err.println("Calling main(String[]) method");
+//                throw new RuntimeException("Calling main(String[]) method");
 //            }
 //            savedMainCcl = Thread.currentThread().getContextClassLoader();
 //            mainMethod.invoke(null, new Object[] { args });
@@ -391,7 +391,7 @@ public class LauncherImpl {
 //        appClass = tempAppClass.asSubclass(Application.class);
 //
 //        if (verbose) {
-//            System.err.println("Launching application directly");
+//            throw new RuntimeException("Launching application directly");
 //        }
 //        launchApplication(app, preClass, args);
 //    }
@@ -420,7 +420,7 @@ public class LauncherImpl {
                         if (f.exists()) {
                             jcpList.add(fileToURL(f));
                         } else if (verbose) {
-                            System.err.println("Class Path entry \""+pathElem
+                            throw new RuntimeException("Class Path entry \""+pathElem
                                     +"\" does not exist, ignoring");
                         }
                         break;
@@ -431,7 +431,7 @@ public class LauncherImpl {
                         if (f.exists()) {
                             jcpList.add(fileToURL(f));
                         } else if (verbose) {
-                            System.err.println("Class Path entry \""+pathElem
+                            throw new RuntimeException("Class Path entry \""+pathElem
                                     +"\" does not exist, ignoring");
                         }
                     }
@@ -469,19 +469,11 @@ public class LauncherImpl {
                 urlList.addAll(jcpList);
 
                 URL[] urls = (URL[])urlList.toArray(new URL[0]);
-                if (verbose) {
-                    System.err.println("===== URL list");
-                    for (int i = 0; i < urls.length; i++) {
-                        System.err.println("" + urls[i]);
-                    }
-                    System.err.println("=====");
-                }
                 return new URLClassLoader(urls, null);
             }
         } catch (Exception ex) {
             if (trace) {
-                System.err.println("Exception creating JavaFX class loader: "+ex);
-                ex.printStackTrace();
+                throw new RuntimeException("Exception creating JavaFX class loader: ",ex);
             }
         }
         return null;
@@ -523,13 +515,8 @@ public class LauncherImpl {
                 deployJar.toURI().toURL()
             };
         } catch (MalformedURLException ex) {
-            if (trace) {
-                System.err.println("Unable to build URL to deploy.jar: "+ex);
-                ex.printStackTrace();
-            }
-            return; // give up setting proxy, usually silently
+                throw new RuntimeException("Unable to build URL to deploy.jar: ",ex);
         }
-
         try {
             URLClassLoader dcl = new URLClassLoader(deployURLs);
             Class sm = Class.forName("com.sun.deploy.services.ServiceManager",
@@ -566,7 +553,7 @@ public class LauncherImpl {
             }
         } catch (Exception e) {
             if (verbose) {
-                System.err.println("Failed to autoconfig proxy due to "+e);
+                throw new RuntimeException("Failed to autoconfig proxy due to "+e);
             }
             if (trace) {
                 e.printStackTrace();
@@ -603,7 +590,7 @@ public class LauncherImpl {
             }
         } catch (IOException ioe) {
             if (verbose) {
-                System.err.println("Failed to extract application parameters");
+                throw new RuntimeException("Failed to extract application parameters");
             }
             ioe.printStackTrace();
         }
@@ -615,7 +602,7 @@ public class LauncherImpl {
     private static void abort(final Throwable cause, final String fmt, final Object... args) {
         String msg = String.format(fmt, args);
         if (msg != null) {
-            System.err.println(msg);
+            throw new RuntimeException(msg);
         }
 
         if (trace) {
@@ -710,7 +697,7 @@ public class LauncherImpl {
                     return;
                 }
 
-//                System.err.println("JavaFX Launcher: system is idle");
+//                throw new RuntimeException("JavaFX Launcher: system is idle");
                 if (startCalled.get()) {
                     shutdownLatch.countDown();
                 } else if (pStartCalled.get()) {
@@ -719,7 +706,7 @@ public class LauncherImpl {
             }
 
             @Override public void exitCalled() {
-//                System.err.println("JavaFX Launcher: received exit notification");
+//                throw new RuntimeException("JavaFX Launcher: received exit notification");
                 exitCalled.set(true);
                 shutdownLatch.countDown();
             }
@@ -739,9 +726,7 @@ public class LauncherImpl {
                         // Set startup parameters
                         ParametersImpl.registerParameters(pldr.get(), new ParametersImpl(args));
                     } catch (Throwable t) {
-                        System.err.println("Exception in Preloader constructor");
-                        pConstructorError = t;
-                        error = true;
+                        throw new RuntimeException("Exception in Preloader constructor");
                     }
                 });
             }
@@ -753,9 +738,7 @@ public class LauncherImpl {
                     // Call the application init method (on the Launcher thread)
                     currentPreloader.init();
                 } catch (Throwable t) {
-                    System.err.println("Exception in Preloader init method");
-                    pInitError = t;
-                    error = true;
+                    throw new RuntimeException("Exception in Preloader init method");
                 }
             }
 
@@ -771,9 +754,7 @@ public class LauncherImpl {
                         primaryStage.impl_setPrimary(true);
                         currentPreloader.start(primaryStage);
                     } catch (Throwable t) {
-                        System.err.println("Exception in Preloader start method");
-                        pStartError = t;
-                        error = true;
+                        throw new RuntimeException("Exception in Preloader start method");
                     }
                 });
 
@@ -808,9 +789,7 @@ public class LauncherImpl {
                         ParametersImpl.registerParameters(app.get(), new ParametersImpl(args));
                         PlatformImpl.setApplicationName(appClass);
                     } catch (Throwable t) {
-                        System.err.println("Exception in Application constructor");
-                        constructorError = t;
-                        error = true;
+                        throw new RuntimeException("Exception in Application constructor");
                     }
                 });
             }
@@ -827,9 +806,7 @@ public class LauncherImpl {
                     // Call the application init method (on the Launcher thread)
                     theApp.init();
                 } catch (Throwable t) {
-                    System.err.println("Exception in Application init method");
-                    initError = t;
-                    error = true;
+                    throw new RuntimeException("Exception in Application init method");
                 }
             }
 
@@ -849,16 +826,16 @@ public class LauncherImpl {
                         primaryStage.impl_setPrimary(true);
                         theApp.start(primaryStage);
                     } catch (Throwable t) {
-                        System.err.println("Exception in Application start method");
                         startError = t;
                         error = true;
+                        throw new RuntimeException("Exception in Application start method",t);
                     }
                 });
             }
 
             if (!error) {
                 shutdownLatch.await();
-//                System.err.println("JavaFX Launcher: time to call stop");
+//                throw new RuntimeException("JavaFX Launcher: time to call stop");
             }
 
             // Call stop method if start was called
@@ -868,9 +845,7 @@ public class LauncherImpl {
                     try {
                         theApp.stop();
                     } catch (Throwable t) {
-                        System.err.println("Exception in Application stop method");
-                        stopError = t;
-                        error = true;
+                        throw new RuntimeException("Exception in Application stop method");
                     }
                 });
             }
@@ -917,7 +892,7 @@ public class LauncherImpl {
 //            PlatformImpl.tkExit();
             final boolean isJavaws = System.getSecurityManager() != null;
             if (error && isJavaws) {
-                System.err.println("Workaround until RT-13281 is implemented: keep toolkit alive");
+                throw new RuntimeException("Workaround until RT-13281 is implemented: keep toolkit alive");
             } else {
                 PlatformImpl.tkExit();
             }

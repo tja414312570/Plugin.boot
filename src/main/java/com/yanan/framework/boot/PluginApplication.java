@@ -1,5 +1,6 @@
 package com.yanan.framework.boot;
 
+import com.yanan.framework.fx.LauncherImpl;
 import com.yanan.framework.plugin.Environment;
 import com.yanan.framework.plugin.PlugsFactory;
 
