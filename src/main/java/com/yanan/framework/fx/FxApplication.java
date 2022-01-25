@@ -12,7 +12,8 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigList;
 import com.typesafe.config.ConfigObject;
-import com.yanan.framework.fx.listener.FxListener;
+import com.yanan.framework.fx.listener.field.FxFieldListener;
+import com.yanan.framework.fx.listener.method.FxMethodListener;
 import com.yanan.framework.plugin.PlugsFactory;
 import com.yanan.framework.plugin.handler.PlugsHandler;
 import com.yanan.utils.CollectionUtils;
@@ -176,7 +177,7 @@ public abstract class FxApplication extends Application{
 		}
 	}
 	private void bindView() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-		Field[] fields = appClass.getDeclaredFields();
+		Field[] fields = ReflectUtils.getAllFields(appClass,FxApplication.class);
 		for(Field field: fields) {
 			if(field.getAnnotation(Bind.class) != null) {
 				ReflectUtils.setFieldValue(field, this, controller);
@@ -205,9 +206,31 @@ public abstract class FxApplication extends Application{
 				Object view = root.lookup(name);
 				ReflectUtils.setFieldValue(field, this, view);
 			}
+			Annotation[] annotations = field.getAnnotations();
+			for(Annotation annotation : annotations) {
+				FxFieldListener<Annotation> listener = PlugsFactory.
+						getPluginsInstanceByAttributeStrictAllowNull(new TypeToken<FxFieldListener<Annotation>>() {}.getTypeClass(),
+								annotation.annotationType().getSimpleName());
+				if(listener != null) {
+					try {
+						listener.adapter(this, field,annotation);
+					} catch (Exception e) {
+						throw new RuntimeException("exception occur at process field " +field+" at "+this.appClass.getName(),e);
+					}
+				}
+			}
+			
 		}
 	}
-
+	public <T> T findViewByField(Field field) {
+		FindViewById findViewById = field.getAnnotation(FindViewById.class);
+		Assert.isNotNull(findViewById);
+		String name = field.getName();
+		if(StringUtil.isNotEmpty(findViewById.value())) {
+			name = findViewById.value();
+		}
+		return findViewById(name);
+	}
 	@SuppressWarnings("unchecked")
 	public <T> T findViewById(String id) {
 		T t = (T) root.lookup("#"+id);
@@ -227,11 +250,15 @@ public abstract class FxApplication extends Application{
 			//stage部分
 			Annotation[] annotations = method.getAnnotations();
 			for(Annotation annotation : annotations) {
-				FxListener<Annotation> listener = PlugsFactory.
-						getPluginsInstanceByAttributeStrictAllowNull(new TypeToken<FxListener<Annotation>>() {}.getTypeClass(),
+				FxMethodListener<Annotation> listener = PlugsFactory.
+						getPluginsInstanceByAttributeStrictAllowNull(new TypeToken<FxMethodListener<Annotation>>() {}.getTypeClass(),
 								annotation.annotationType().getSimpleName());
 				if(listener != null) {
-					listener.adapter(this, method,annotation);
+					try {
+						listener.adapter(this, method,annotation);
+					} catch (Exception e) {
+						throw new RuntimeException("exception occur at process method " +method+" at "+this.appClass.getName(),e);
+					}
 				}
 			}
 		}

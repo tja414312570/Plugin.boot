@@ -1,4 +1,4 @@
-package com.yanan.framework.fx.listener;
+package com.yanan.framework.fx.listener.method;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 

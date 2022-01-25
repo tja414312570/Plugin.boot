@@ -1,4 +1,4 @@
-package com.yanan.framework.fx.listener;
+package com.yanan.framework.fx.listener.method;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -9,8 +9,8 @@ import javafx.beans.value.ChangeListener;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 
-public interface FxListener<T extends Annotation> {
-	public void adapter(FxApplication fxApplication,Method method,T annotation);
+public interface FxMethodListener<T extends Annotation> {
+	public void adapter(FxApplication fxApplication,Method method,T annotation) throws Exception;
 	public static class DefaultMethodAdapter{
 		public static <T> ChangeListener<T> onChangeListener(Method method,FxApplication fxApplication) {
 			ChangeListener<T> changeListener = (observable,oldValue,newValue)->{

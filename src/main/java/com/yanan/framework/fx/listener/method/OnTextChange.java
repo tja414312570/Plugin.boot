@@ -1,4 +1,4 @@
-package com.yanan.framework.fx.listener;
+package com.yanan.framework.fx.listener.method;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -13,7 +13,6 @@ import java.lang.annotation.Target;
  */
 @Retention(RUNTIME)
 @Target({ ElementType.METHOD })
-public @interface OnSelected {
+public @interface OnTextChange {
 	String value();
-	boolean negative() default false;
 }
