@@ -12,8 +12,10 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigList;
 import com.typesafe.config.ConfigObject;
-import com.yanan.framework.fx.listener.field.FxFieldListener;
-import com.yanan.framework.fx.listener.method.FxMethodListener;
+import com.yanan.framework.fx.process.field.FxFieldPostProcess;
+import com.yanan.framework.fx.process.field.FxFieldProcess;
+import com.yanan.framework.fx.process.method.FxMethodPostProcess;
+import com.yanan.framework.fx.process.method.FxMethodProcess;
 import com.yanan.framework.plugin.PlugsFactory;
 import com.yanan.framework.plugin.handler.PlugsHandler;
 import com.yanan.utils.CollectionUtils;
@@ -41,12 +43,16 @@ import javafx.stage.Stage;
 
 public abstract class FxApplication extends Application{
 	protected abstract void startApp(Stage stage) throws Exception;
-
 	protected Parent root;
 	protected Object controller;
 	protected Stage primaryStage;
 	private FXMLLoader fxmlLoader;
 	private Class<?> appClass;
+	
+	private static ThreadLocal<FxApplication> currentFxApplication = new InheritableThreadLocal<>();
+	public static FxApplication getCurrentFxApplication() {
+		return currentFxApplication.get();
+	}
 
 	@SuppressWarnings("unchecked")
 	public <T extends Parent> T getRootView() {
@@ -179,13 +185,13 @@ public abstract class FxApplication extends Application{
 	private void bindView() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		Field[] fields = ReflectUtils.getAllFields(appClass,FxApplication.class);
 		for(Field field: fields) {
-			if(field.getAnnotation(Bind.class) != null) {
+			if(field.getAnnotation(Controller.class) != null) {
 				ReflectUtils.setFieldValue(field, this, controller);
 			}
-			if(field.getAnnotation(View.class) != null) {
+			if(field.getAnnotation(RootView.class) != null) {
 				ReflectUtils.setFieldValue(field, this, root);
 			}
-			if(field.getAnnotation(BindStage.class) != null) {
+			if(field.getAnnotation(PrimaryStage.class) != null) {
 				ReflectUtils.setFieldValue(field, this, primaryStage);
 			}
 			FindViewById findViewById = field.getAnnotation(FindViewById.class);
@@ -208,8 +214,8 @@ public abstract class FxApplication extends Application{
 			}
 			Annotation[] annotations = field.getAnnotations();
 			for(Annotation annotation : annotations) {
-				FxFieldListener<Annotation> listener = PlugsFactory.
-						getPluginsInstanceByAttributeStrictAllowNull(new TypeToken<FxFieldListener<Annotation>>() {}.getTypeClass(),
+				FxFieldProcess<Annotation> listener = PlugsFactory.
+						getPluginsInstanceByAttributeStrictAllowNull(new TypeToken<FxFieldProcess<Annotation>>() {}.getTypeClass(),
 								annotation.annotationType().getSimpleName());
 				if(listener != null) {
 					try {
@@ -250,8 +256,8 @@ public abstract class FxApplication extends Application{
 			//stage部分
 			Annotation[] annotations = method.getAnnotations();
 			for(Annotation annotation : annotations) {
-				FxMethodListener<Annotation> listener = PlugsFactory.
-						getPluginsInstanceByAttributeStrictAllowNull(new TypeToken<FxMethodListener<Annotation>>() {}.getTypeClass(),
+				FxMethodProcess<Annotation> listener = PlugsFactory.
+						getPluginsInstanceByAttributeStrictAllowNull(new TypeToken<FxMethodProcess<Annotation>>() {}.getTypeClass(),
 								annotation.annotationType().getSimpleName());
 				if(listener != null) {
 					try {
@@ -269,12 +275,57 @@ public abstract class FxApplication extends Application{
  	}
  	
 	public void start(Stage stage) throws Exception {
+		currentFxApplication.set(this);
 		this.primaryStage = stage;
 		bind();
 		Scene scence = new Scene(root);
 		this.startApp(stage);
+		bindPost();
 		Assert.isNotNull(scence);
 		stage.setScene(scence);
 		stage.show();
+		
+	}
+	private void bindPost() throws Exception{
+		fieldPostProcess();
+		methodPostProcess();
+	}
+	private void methodPostProcess() {
+		Method[] methods = appClass.getMethods();
+		for(Method method: methods) {
+			//stage部分
+			Annotation[] annotations = method.getAnnotations();
+			for(Annotation annotation : annotations) {
+				FxMethodPostProcess<Annotation> listener = PlugsFactory.
+						getPluginsInstanceByAttributeStrictAllowNull(new TypeToken<FxMethodPostProcess<Annotation>>() {}.getTypeClass(),
+								annotation.annotationType().getSimpleName());
+				if(listener != null) {
+					try {
+						listener.adapter(this, method,annotation);
+					} catch (Exception e) {
+						throw new RuntimeException("exception occur at process method " +method+" at "+this.appClass.getName(),e);
+					}
+				}
+			}
+		}
+	}
+	private void fieldPostProcess() throws IllegalArgumentException, IllegalAccessException {
+		Field[] fields = ReflectUtils.getAllFields(appClass,FxApplication.class);
+		for(Field field: fields) {
+			Annotation[] annotations = field.getAnnotations();
+			for(Annotation annotation : annotations) {
+				FxFieldPostProcess<Annotation> listener = PlugsFactory.
+						getPluginsInstanceByAttributeStrictAllowNull(new TypeToken<FxFieldPostProcess<Annotation>>() {}.getTypeClass(),
+								annotation.annotationType().getSimpleName());
+				if(listener != null) {
+					try {
+						listener.adapter(this, field,annotation);
+					} catch (Exception e) {
+						throw new RuntimeException("exception occur at process field " +field+" at "+this.appClass.getName(),e);
+					}
+				}
+			}
+		}
+		
 	}
 }

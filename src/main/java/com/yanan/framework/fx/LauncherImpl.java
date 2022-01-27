@@ -690,7 +690,7 @@ public class LauncherImpl {
         final AtomicBoolean pExitCalled = new AtomicBoolean(false);
         final CountDownLatch shutdownLatch = new CountDownLatch(1);
         final CountDownLatch pShutdownLatch = new CountDownLatch(1);
-
+        
         final PlatformImpl.FinishListener listener = new PlatformImpl.FinishListener() {
             @Override public void idle(boolean implicitExit) {
                 if (!implicitExit) {
@@ -748,7 +748,6 @@ public class LauncherImpl {
                 PlatformImpl.runAndWait(() -> {
                     try {
                         pStartCalled.set(true);
-
                         // Create primary stage and call preloader start method
                         final Stage primaryStage = new Stage();
                         primaryStage.impl_setPrimary(true);
@@ -783,7 +782,6 @@ public class LauncherImpl {
 
                 PlatformImpl.runAndWait(() -> {
                     try {
-                        Constructor<? extends Application> c = appClass.getConstructor();
                         app.set(appInstance);
                         // Set startup parameters
                         ParametersImpl.registerParameters(app.get(), new ParametersImpl(args));

@@ -161,7 +161,9 @@ public class PluginBootServer {
 				resourceList = ResourceManager.getResourceList("classpath:**.yc");
 			}
 		}
+		
 		resourceList.forEach(resource->{
+			log.info("load config resource file:"+resource.getURI());
 			InputStream inputStream = null;
 			Reader reader = null;
 			try {

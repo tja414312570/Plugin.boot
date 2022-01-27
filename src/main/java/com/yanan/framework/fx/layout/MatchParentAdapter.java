@@ -3,14 +3,14 @@ package com.yanan.framework.fx.layout;
 import java.lang.reflect.Field;
 
 import com.yanan.framework.fx.FxApplication;
-import com.yanan.framework.fx.listener.field.FxFieldListener;
+import com.yanan.framework.fx.process.field.FxFieldProcess;
 import com.yanan.framework.plugin.annotations.Register;
 import com.yanan.utils.asserts.Assert;
 
 import javafx.scene.layout.Region;
 
 @Register(attribute = "MatchParent")
-public class MatchParentAdapter implements FxFieldListener<MatchParent>{
+public class MatchParentAdapter implements FxFieldProcess<MatchParent>{
 
 	@Override
 	public void adapter(FxApplication fxApplication, Field field, MatchParent annotation) throws Exception {
