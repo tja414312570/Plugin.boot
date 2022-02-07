@@ -7,7 +7,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * 引导参数设置
+ * 找到视图
  * @author yanan
  *
  */
