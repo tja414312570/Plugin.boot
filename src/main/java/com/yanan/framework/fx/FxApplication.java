@@ -5,6 +5,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +48,7 @@ public abstract class FxApplication extends Application{
 	protected Stage primaryStage;
 	private FXMLLoader fxmlLoader;
 	private Class<?> appClass;
+	private FxApplication parent;
 	
 	private static ThreadLocal<FxApplication> currentFxApplication = new InheritableThreadLocal<>();
 	public static FxApplication getCurrentFxApplication() {
@@ -75,12 +77,8 @@ public abstract class FxApplication extends Application{
 	public Stage getPrimaryStage() {
 		return primaryStage;
 	}
-	private void bind() throws Exception {
-		appClass = getClass();
-		if(PlugsFactory.isProxy(this)) {
-			PlugsHandler plugsHandler = PlugsFactory.getPluginsHandler(this);
-			appClass = plugsHandler.getRegisterDefinition().getRegisterClass();
-		}
+	private void buildView() throws IOException {
+		
 		ContextView contextView = appClass.getAnnotation(ContextView.class);
 		String res ;
 		fxmlLoader = new FXMLLoader();
@@ -100,6 +98,8 @@ public abstract class FxApplication extends Application{
 			Image image = new Image(resource.getInputStream());
 			primaryStage.getIcons().add(image);
 		}
+	}
+	private void bind() throws Exception {
 		//加载菜单资源
 		bindMenus();
 		this.controller = fxmlLoader.getController();
@@ -184,45 +184,49 @@ public abstract class FxApplication extends Application{
 	private void bindView() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		Field[] fields = ReflectUtils.getAllFields(appClass,FxApplication.class);
 		for(Field field: fields) {
-			if(field.getAnnotation(Controller.class) != null) {
-				ReflectUtils.setFieldValue(field, this, controller);
-			}
-			if(field.getAnnotation(RootView.class) != null) {
-				ReflectUtils.setFieldValue(field, this, root);
-			}
-			if(field.getAnnotation(PrimaryStage.class) != null) {
-				ReflectUtils.setFieldValue(field, this, primaryStage);
-			}
-			FindViewById findViewById = field.getAnnotation(FindViewById.class);
-			if(findViewById != null) {
-				String name = field.getName();
-				if(StringUtil.isNotEmpty(findViewById.value())) {
-					name = findViewById.value();
+			try {
+				if(field.getAnnotation(Controller.class) != null) {
+					ReflectUtils.setFieldValue(field, this, controller);
 				}
-				Object view = findViewById(name);
-				ReflectUtils.setFieldValue(field, this, view);
-			}
-			FindView findView = field.getAnnotation(FindView.class);
-			if(findView != null) {
-				String name = field.getName();
-				if(StringUtil.isNotEmpty(findView.value())) {
-					name = findView.value();
+				if(field.getAnnotation(RootView.class) != null) {
+					ReflectUtils.setFieldValue(field, this, root);
 				}
-				Object view = root.lookup(name);
-				ReflectUtils.setFieldValue(field, this, view);
-			}
-			Annotation[] annotations = field.getAnnotations();
-			for(Annotation annotation : annotations) {
-				FxFieldProcess<Annotation> listener = PlugsFactory.
-						getPluginsInstanceByAttributeStrictAllowNull(new TypeToken<FxFieldProcess<Annotation>>() {}.getTypeClass(),
-								annotation.annotationType().getSimpleName());
-				if(listener != null) {
-					try {
-						listener.adapter(this, field,annotation);
-					} catch (Exception e) {
-						throw new RuntimeException("exception occur at process field " +field+" at "+this.appClass.getName(),e);
+				if(field.getAnnotation(PrimaryStage.class) != null) {
+					ReflectUtils.setFieldValue(field, this, primaryStage);
+				}
+				FindViewById findViewById = field.getAnnotation(FindViewById.class);
+				if(findViewById != null) {
+					String name = field.getName();
+					if(StringUtil.isNotEmpty(findViewById.value())) {
+						name = findViewById.value();
+					}
+					Object view = findViewById(name);
+					ReflectUtils.setFieldValue(field, this, view);
+				}
+				FindView findView = field.getAnnotation(FindView.class);
+				if(findView != null) {
+					String name = field.getName();
+					if(StringUtil.isNotEmpty(findView.value())) {
+						name = findView.value();
+					}
+					Object view = root.lookup(name);
+					ReflectUtils.setFieldValue(field, this, view);
+				}
+				Annotation[] annotations = field.getAnnotations();
+				for(Annotation annotation : annotations) {
+					FxFieldProcess<Annotation> listener = PlugsFactory.
+							getPluginsInstanceByAttributeStrictAllowNull(new TypeToken<FxFieldProcess<Annotation>>() {}.getTypeClass(),
+									annotation.annotationType().getSimpleName());
+					if(listener != null) {
+						try {
+							listener.adapter(this, field,annotation);
+						} catch (Exception e) {
+							throw new RuntimeException("exception occur at process field " +field+" at "+this.appClass.getName(),e);
+						}
 					}
 				}
+			} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+				throw new RuntimeException("failed to process field "+field,e);
 			}
 			
 		}
@@ -274,16 +278,30 @@ public abstract class FxApplication extends Application{
  	}
  	
 	public void start(Stage stage) throws Exception {
-		currentFxApplication.set(this);
 		this.primaryStage = stage;
+		appClass = getClass();
+		if(PlugsFactory.isProxy(this)) {
+			PlugsHandler plugsHandler = PlugsFactory.getPluginsHandler(this);
+			appClass = plugsHandler.getRegisterDefinition().getRegisterClass();
+		}
+		boolean isMain = true;
+		if(stage.getScene() == null) {
+			currentFxApplication.set(this);
+			buildView();
+			Scene scence = new Scene(root);
+			stage.setScene(scence);
+		}else {
+			parent = currentFxApplication.get();
+			this.fxmlLoader = parent.fxmlLoader;
+			this.root = parent.root;
+			isMain = false;
+		}
 		bind();
-		Scene scence = new Scene(root);
 		this.startApp(stage);
 		bindPost();
-		Assert.isNotNull(scence);
-		stage.setScene(scence);
-		stage.show();
-		
+		if(isMain) {
+			stage.show();
+		}
 	}
 	private void bindPost() throws Exception{
 		fieldPostProcess();

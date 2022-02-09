@@ -6,6 +6,7 @@ import com.yanan.framework.fx.FxApplication;
 import com.yanan.framework.fx.process.field.FxFieldProcess;
 import com.yanan.framework.plugin.annotations.Register;
 import com.yanan.utils.asserts.Assert;
+import com.yanan.utils.reflect.ReflectUtils;
 
 import javafx.scene.layout.Region;
 
@@ -19,6 +20,9 @@ public class MatchParentAdapter implements FxFieldProcess<MatchParent>{
 		if(parent == null) {
 			parent = fxApplication.getRootView();
 		}
+		System.err.println(view+"@"+view.hashCode()+"-------------->"+parent);
+		 System.err.println(view.prefWidthProperty()+"==========="+parent.widthProperty());
+    	 System.err.println();
 		Assert.isNotNull(parent,"could not found parent for field "+field.getName()+" at "+fxApplication.getAppClass().getName());
 		if(annotation.width()) {
 			view.prefWidthProperty().bind(parent.widthProperty());

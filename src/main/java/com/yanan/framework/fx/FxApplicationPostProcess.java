@@ -43,6 +43,7 @@ public class FxApplicationPostProcess implements RegisterRefreshProcess,Instance
 
 	@Override
 	public void process(PlugsFactory plugsFactory, RegisterDefinition currentRegisterDefinition) {
+//		System.err.println(currentRegisterDefinition.getRegisterClass());
 		if(FxApplication.class.isAssignableFrom(currentRegisterDefinition.getRegisterClass())) {
 			currentRegisterDefinition.setProxyModel(ProxyModel.CGLIB);
 		}
