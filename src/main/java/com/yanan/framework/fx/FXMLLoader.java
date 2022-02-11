@@ -50,13 +50,13 @@ import com.sun.javafx.fxml.PropertyNotFoundException;
 import com.sun.javafx.fxml.expression.Expression;
 import com.sun.javafx.fxml.expression.KeyPath;
 import com.sun.javafx.util.Logging;
+import com.yanan.framework.fx.attr.FxmlAttrProcess;
+import com.yanan.framework.plugin.PlugsFactory;
 import com.yanan.fx.layout.Template;
-import com.yanan.utils.reflect.ReflectUtils;
 import com.yanan.utils.resource.ResourceManager;
 
 import javafx.beans.DefaultProperty;
 import javafx.beans.InvalidationListener;
-import javafx.beans.binding.NumberExpression;
 import javafx.beans.property.Property;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -74,7 +74,6 @@ import javafx.fxml.Initializable;
 import javafx.fxml.JavaFXBuilderFactory;
 import javafx.fxml.LoadException;
 import javafx.scene.Node;
-import javafx.scene.layout.Region;
 import javafx.util.Builder;
 import javafx.util.BuilderFactory;
 import javafx.util.Callback;
@@ -99,8 +98,7 @@ public class FXMLLoader {
         public final Element parent;
 
         public Object value = null;
-        @SuppressWarnings("restriction")
-		private BeanAdapter valueAdapter = null;
+        private BeanAdapter valueAdapter = null;
 
         public final LinkedList<Attribute> eventHandlerAttributes = new LinkedList<Attribute>();
         public final LinkedList<Attribute> instancePropertyAttributes = new LinkedList<Attribute>();
@@ -311,72 +309,30 @@ public class FXMLLoader {
             } else if (isBidirectionalBindingExpression(value)) {
                 throw constructLoadException(new UnsupportedOperationException("This feature is not currently enabled."));
             } else {
-            	if(attribute.name.toLowerCase().indexOf("width") != -1) {
-            		processSize("width",attribute.sourceType, attribute.name, value);
-            	}else if(attribute.name.toLowerCase().indexOf("height") != -1) {
-            		processSize("height",attribute.sourceType, attribute.name, value);
-            	}else if(attribute.name.toLowerCase().indexOf("size") != -1) {
-            		processSize("width",attribute.sourceType, attribute.name, value);
-            		processSize("height",attribute.sourceType, attribute.name, value);
-            	}else processValue(attribute.sourceType, attribute.name, value);
+            	FxmlAttrProcess fxmlAttrProcess = PlugsFactory.getPluginsInstanceByAttributeStrictAllowNull(FxmlAttrProcess.class,attribute.name);
+            	if(fxmlAttrProcess != null) {
+            		 Element parentElement = FXMLLoader.this.current.parent;
+                	 while(parentElement != null && ( parentElement.value instanceof List || parentElement.value == null)) {
+                		 parentElement = parentElement.parent;
+                	 }
+                	 Object parent = parentElement== null? null : parentElement.value;
+                	 if(!fxmlAttrProcess.process(FXMLLoader.this, attribute.sourceType, attribute.name, value, this.value, parent)) {
+                		 processValue(attribute.sourceType, attribute.name, value);
+                	 }
+            	}else {
+            		processValue(attribute.sourceType, attribute.name, value);
+            	}
+//            	if(attribute.name.toLowerCase().indexOf("width") != -1) {
+//            		processSize("width",attribute.sourceType, attribute.name, value);
+//            	}else if(attribute.name.toLowerCase().indexOf("height") != -1) {
+//            		processSize("height",attribute.sourceType, attribute.name, value);
+//            	}else if(attribute.name.toLowerCase().indexOf("size") != -1) {
+//            		processSize("width",attribute.sourceType, attribute.name, value);
+//            		processSize("height",attribute.sourceType, attribute.name, value);
+//            	}else 
             }
         }
 
-        private void processSize(String attr, Class<?> sourceType, String name, String value) throws LoadException{
-            
-             // Create the binding
-             BeanAdapter targetAdapter = new BeanAdapter(this.value);
-             if(value.equals("matchParent")) {
-            	 try {
-            		 String propertyName;
-            		 if(attr.equals("width")) {
-            			 propertyName = "prefWidthProperty";
-            		 }else {
-            			 propertyName = "prefHeightProperty";
-            		 }
-            	 ObservableValue<Object> propertyModel = targetAdapter.getPropertyModel(propertyName);
-                 Class<?> type = targetAdapter.getType(name);
-                 if(propertyModel == null) {
-						propertyModel = ReflectUtils.invokeMethod(this.value, propertyName);
-	                 if(propertyModel == null ) {
-	                	 throw constructLoadException("Cannot found property "+this.value.getClass().getName()+"."+name);
-	                 }
-                 }
-                 if (propertyModel instanceof Property<?>) {
-                	 Element parentElement = FXMLLoader.this.current.parent;
-//                	 Parent
-                	 if(parentElement.value instanceof List) {
-                		 parentElement = parentElement.parent;
-                	 }
-                	 Object parent = parentElement.value;
-//                	 propertyModel.getValue()
-                	 System.err.println(this.value+"@"+this.value.hashCode()+"===========>"+parent);
-                	 System.err.println(propertyModel+"==========="+ReflectUtils.invokeMethod(parent, attr+"Property"));
-//                	 new ExpressionValue(namespace, expression, type);
-                	 NumberExpression parentModel = ReflectUtils.invokeMethod(parent, attr+"Property");
-                	 double pos = 0;
-                	 if(attr.equals("width")) {
-                		 pos = ((Node)this.value).getLayoutX();
-                	 }else {
-                		 pos = ((Node)this.value).getLayoutY();
-                	 }
-                	 parentModel = parentModel.subtract(pos);
-//                	 ((Region)this.value).prefHeightProperty().bind( ((Region)parent).prefHeightProperty());
-                	 Expression expression = Expression.valueOf(attr+"Property- 200");
-//                	 parentModel.ad
-                	 ((Property<Object>) propertyModel).bind(parentModel);
-                 }else {
-                	 processValue(sourceType, name, value);
-                 }
-            	 } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
-							| NoSuchMethodException | SecurityException e) {
-						throw constructLoadException(e);
-					}
-             }else {
-            	 processValue(sourceType, name, value);
-             }
-             
-		}
 
 		private boolean isBindingExpression(String aValue) {
             return aValue.startsWith(BINDING_EXPRESSION_PREFIX)

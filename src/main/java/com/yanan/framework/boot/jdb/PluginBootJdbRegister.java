@@ -44,7 +44,6 @@ public class PluginBootJdbRegister {
 	@PostConstruct
 	public void start() {
 		logger.info("start plugin jdb service");
-		System.err.println(this);
 		DefaultDataSource source = new DefaultDataSource();
 		source.setId(this.id);
 		source.setUrl(this.url);

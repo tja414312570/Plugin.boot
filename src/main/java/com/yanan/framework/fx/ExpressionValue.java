@@ -30,8 +30,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.management.RuntimeErrorException;
-
 import com.sun.javafx.fxml.BeanAdapter;
 import com.sun.javafx.fxml.expression.Expression;
 import com.sun.javafx.fxml.expression.KeyPath;
@@ -209,7 +207,6 @@ public class ExpressionValue extends ObservableValueBase<Object> {
     	if(value instanceof ObservableValue) {
     		value = ((ObservableValue)value).getValue();
     	}
-    	System.err.println("获取到值:"+value);
         return BeanAdapter.coerce(value, type);
     }
 

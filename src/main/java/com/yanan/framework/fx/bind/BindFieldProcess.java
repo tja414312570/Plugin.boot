@@ -60,8 +60,6 @@ public class BindFieldProcess implements FxFieldPostProcess<Bind>{
 	}
 
 	private String getPropertyAttr(Property<Object> fieldProperty) {
-		System.err.println();
-		System.err.println(fieldProperty.getClass()+"----------------------------");
 		String name = fieldProperty.getName();
 		if(StringUtils.isEmpty(name)) {
 			Class<?> clzz = fieldProperty.getClass();

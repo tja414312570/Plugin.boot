@@ -14,6 +14,7 @@ import com.yanan.framework.fx.process.field.FxFieldProcess;
 import com.yanan.framework.fx.process.method.FxMethodBeforeProcess;
 import com.yanan.framework.fx.process.method.FxMethodPostProcess;
 import com.yanan.framework.fx.process.method.FxMethodProcess;
+import com.yanan.framework.fx.process.method.LazyLoader;
 import com.yanan.framework.plugin.FactoryRefreshProcess;
 import com.yanan.framework.plugin.InstanceBeforeProcesser;
 import com.yanan.framework.plugin.PlugsFactory;
@@ -44,7 +45,8 @@ public class FxApplicationPostProcess implements RegisterRefreshProcess,Instance
 	@Override
 	public void process(PlugsFactory plugsFactory, RegisterDefinition currentRegisterDefinition) {
 //		System.err.println(currentRegisterDefinition.getRegisterClass());
-		if(FxApplication.class.isAssignableFrom(currentRegisterDefinition.getRegisterClass())) {
+		if(FxApplication.class.isAssignableFrom(currentRegisterDefinition.getRegisterClass())
+				||LazyLoader.class.isAssignableFrom(currentRegisterDefinition.getRegisterClass())) {
 			currentRegisterDefinition.setProxyModel(ProxyModel.CGLIB);
 		}
 	}

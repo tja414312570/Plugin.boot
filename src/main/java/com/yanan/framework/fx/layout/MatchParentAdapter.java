@@ -20,9 +20,6 @@ public class MatchParentAdapter implements FxFieldProcess<MatchParent>{
 		if(parent == null) {
 			parent = fxApplication.getRootView();
 		}
-		System.err.println(view+"@"+view.hashCode()+"-------------->"+parent);
-		 System.err.println(view.prefWidthProperty()+"==========="+parent.widthProperty());
-    	 System.err.println();
 		Assert.isNotNull(parent,"could not found parent for field "+field.getName()+" at "+fxApplication.getAppClass().getName());
 		if(annotation.width()) {
 			view.prefWidthProperty().bind(parent.widthProperty());

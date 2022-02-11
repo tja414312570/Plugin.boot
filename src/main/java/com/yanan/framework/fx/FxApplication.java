@@ -5,7 +5,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +16,7 @@ import com.yanan.framework.fx.process.field.FxFieldPostProcess;
 import com.yanan.framework.fx.process.field.FxFieldProcess;
 import com.yanan.framework.fx.process.method.FxMethodPostProcess;
 import com.yanan.framework.fx.process.method.FxMethodProcess;
+import com.yanan.framework.fx.process.method.LazyLoader;
 import com.yanan.framework.plugin.PlugsFactory;
 import com.yanan.framework.plugin.handler.PlugsHandler;
 import com.yanan.utils.CollectionUtils;
@@ -30,6 +30,7 @@ import com.yanan.utils.string.StringUtil;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.collections.MapChangeListener;
 import javafx.event.EventTarget;
 import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Parent;
@@ -184,15 +185,14 @@ public abstract class FxApplication extends Application{
 	private void bindView() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		Field[] fields = ReflectUtils.getAllFields(appClass,FxApplication.class);
 		for(Field field: fields) {
-			try {
 				if(field.getAnnotation(Controller.class) != null) {
-					ReflectUtils.setFieldValue(field, this, controller);
+					setFieldValue(field,this,root);
 				}
 				if(field.getAnnotation(RootView.class) != null) {
-					ReflectUtils.setFieldValue(field, this, root);
+					setFieldValue(field, this, root);
 				}
 				if(field.getAnnotation(PrimaryStage.class) != null) {
-					ReflectUtils.setFieldValue(field, this, primaryStage);
+					setFieldValue(field, this, primaryStage);
 				}
 				FindViewById findViewById = field.getAnnotation(FindViewById.class);
 				if(findViewById != null) {
@@ -201,7 +201,7 @@ public abstract class FxApplication extends Application{
 						name = findViewById.value();
 					}
 					Object view = findViewById(name);
-					ReflectUtils.setFieldValue(field, this, view);
+					setFieldValue(field, this, view);
 				}
 				FindView findView = field.getAnnotation(FindView.class);
 				if(findView != null) {
@@ -210,35 +210,41 @@ public abstract class FxApplication extends Application{
 						name = findView.value();
 					}
 					Object view = root.lookup(name);
-					ReflectUtils.setFieldValue(field, this, view);
+					setFieldValue(field, this, view);
 				}
 				Annotation[] annotations = field.getAnnotations();
+				LazyLoad lazyLoad = field.getAnnotation(LazyLoad.class);
 				for(Annotation annotation : annotations) {
 					FxFieldProcess<Annotation> listener = PlugsFactory.
 							getPluginsInstanceByAttributeStrictAllowNull(new TypeToken<FxFieldProcess<Annotation>>() {}.getTypeClass(),
 									annotation.annotationType().getSimpleName());
 					if(listener != null) {
-						try {
-							listener.adapter(this, field,annotation);
-						} catch (Exception e) {
-							throw new RuntimeException("exception occur at process field " +field+" at "+this.appClass.getName(),e);
-						}
+						bindListener(listener,lazyLoad,field,annotation);
 					}
 				}
-			} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
-				throw new RuntimeException("failed to process field "+field,e);
-			}
 			
 		}
 	}
+	private void setFieldValue(Field field, FxApplication fxApplication, Object value) {
+		try {
+			ReflectUtils.setFieldValue(field, this, value);
+		} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+			throw new RuntimeException("failed to process field "+field+" value "+ value,e);
+		}
+		
+	}
+
 	public <T> T findViewByField(Field field) {
+		return findViewById(getViewIdByField(field));
+	}
+	public static String getViewIdByField(Field field) {
 		FindViewById findViewById = field.getAnnotation(FindViewById.class);
 		Assert.isNotNull(findViewById);
 		String name = field.getName();
 		if(StringUtil.isNotEmpty(findViewById.value())) {
 			name = findViewById.value();
 		}
-		return findViewById(name);
+		return name;
 	}
 	@SuppressWarnings("unchecked")
 	public <T> T findViewById(String id) {
@@ -256,24 +262,22 @@ public abstract class FxApplication extends Application{
  	private void bindListener() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchFieldException, SecurityException, NoSuchMethodException {
 		Method[] methods = appClass.getMethods();
 		for(Method method: methods) {
-			//stage部分
+			LazyLoad lazyLoad = method.getAnnotation(LazyLoad.class);
 			Annotation[] annotations = method.getAnnotations();
 			for(Annotation annotation : annotations) {
 				FxMethodProcess<Annotation> listener = PlugsFactory.
 						getPluginsInstanceByAttributeStrictAllowNull(new TypeToken<FxMethodProcess<Annotation>>() {}.getTypeClass(),
 								annotation.annotationType().getSimpleName());
 				if(listener != null) {
-					try {
-						listener.adapter(this, method,annotation);
-					} catch (Exception e) {
-						throw new RuntimeException("exception occur at process method " +method+" at "+this.appClass.getName(),e);
-					}
+					bindListener(listener,lazyLoad,method,annotation);
 				}
 			}
 		}
 	}
 
- 	public void callDrawUi(Runnable execute) {
+ 	
+
+	public void callDrawUi(Runnable execute) {
  		 Platform.runLater(execute);
  	}
  	
@@ -312,16 +316,13 @@ public abstract class FxApplication extends Application{
 		for(Method method: methods) {
 			//stage部分
 			Annotation[] annotations = method.getAnnotations();
+			LazyLoad lazyLoad = method.getAnnotation(LazyLoad.class);
 			for(Annotation annotation : annotations) {
 				FxMethodPostProcess<Annotation> listener = PlugsFactory.
 						getPluginsInstanceByAttributeStrictAllowNull(new TypeToken<FxMethodPostProcess<Annotation>>() {}.getTypeClass(),
 								annotation.annotationType().getSimpleName());
 				if(listener != null) {
-					try {
-						listener.adapter(this, method,annotation);
-					} catch (Exception e) {
-						throw new RuntimeException("exception occur at process method " +method+" at "+this.appClass.getName(),e);
-					}
+					bindListener(listener,lazyLoad,method,annotation);
 				}
 			}
 		}
@@ -330,19 +331,65 @@ public abstract class FxApplication extends Application{
 		Field[] fields = ReflectUtils.getAllFields(appClass,FxApplication.class);
 		for(Field field: fields) {
 			Annotation[] annotations = field.getAnnotations();
+			LazyLoad lazyLoad = field.getAnnotation(LazyLoad.class);
 			for(Annotation annotation : annotations) {
 				FxFieldPostProcess<Annotation> listener = PlugsFactory.
 						getPluginsInstanceByAttributeStrictAllowNull(new TypeToken<FxFieldPostProcess<Annotation>>() {}.getTypeClass(),
 								annotation.annotationType().getSimpleName());
 				if(listener != null) {
-					try {
-						listener.adapter(this, field,annotation);
-					} catch (Exception e) {
-						throw new RuntimeException("exception occur at process field " +field+" at "+this.appClass.getName(),e);
-					}
+					bindListener(listener,lazyLoad,field,annotation);
 				}
 			}
 		}
 		
+	}
+
+	private void bindListener(FxFieldProcess<Annotation> listener, LazyLoad lazyLoad, Field field,
+			Annotation annotation) {
+		try {
+			if(lazyLoad != null && listener instanceof LazyLoader) {
+				fxmlLoader.getNamespace().addListener(new MapChangeListener<String, Object>(){
+					@SuppressWarnings("unchecked")
+					@Override
+					public void onChanged(Change<? extends String, ? extends Object> change) {
+						if(StringUtil.equals(change.getKey(), ((LazyLoader<Annotation>)listener).id(annotation,field))){
+							try {
+								listener.adapter(FxApplication.this, field,annotation);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					}
+				});
+			}else {
+				listener.adapter(this, field,annotation);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("exception occur at process field " +field+" at "+this.appClass.getName(),e);
+		}
+		
+	}
+	private void bindListener(FxMethodProcess<Annotation> listener, LazyLoad lazyLoad, Method method,Annotation annotation) {
+ 		try {
+			if(lazyLoad != null && listener instanceof LazyLoader) {
+				fxmlLoader.getNamespace().addListener(new MapChangeListener<String, Object>(){
+					@SuppressWarnings("unchecked")
+					@Override
+					public void onChanged(Change<? extends String, ? extends Object> change) {
+						if(StringUtil.equals(change.getKey(), ((LazyLoader<Annotation>)listener).id(annotation,method))){
+							try {
+								listener.adapter(FxApplication.this, method,annotation);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					}
+				});
+			}else {
+				listener.adapter(this, method,annotation);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("exception occur at process method " +method+" at "+this.appClass.getName(),e);
+		}
 	}
 }
