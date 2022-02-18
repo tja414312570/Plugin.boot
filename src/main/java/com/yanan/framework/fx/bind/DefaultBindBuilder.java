@@ -1,27 +1,17 @@
-package com.yanan.framework.fx;
+package com.yanan.framework.fx.bind;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import com.yanan.framework.fx.bind.BindContext;
-import com.yanan.framework.fx.bind.DataSource;
-import com.yanan.framework.fx.bind.DataSourceHandler;
-import com.yanan.framework.fx.process.field.FxFieldBeforeProcess;
-import com.yanan.framework.fx.process.field.FxFieldPostProcess;
-import com.yanan.framework.fx.process.field.FxFieldProcess;
-import com.yanan.framework.fx.process.method.FxMethodBeforeProcess;
-import com.yanan.framework.fx.process.method.FxMethodPostProcess;
-import com.yanan.framework.fx.process.method.FxMethodProcess;
-import com.yanan.framework.fx.process.method.LazyLoader;
-import com.yanan.framework.plugin.FactoryRefreshProcess;
-import com.yanan.framework.plugin.InstanceBeforeProcesser;
+import com.yanan.framework.fx.FxApplication;
 import com.yanan.framework.plugin.PlugsFactory;
-import com.yanan.framework.plugin.ProxyModel;
-import com.yanan.framework.plugin.RegisterRefreshProcess;
 import com.yanan.framework.plugin.annotations.Register;
 import com.yanan.framework.plugin.definition.RegisterDefinition;
+import com.yanan.utils.asserts.Assert;
 import com.yanan.utils.reflect.ReflectUtils;
 
 import javafx.beans.property.Property;
@@ -34,28 +24,63 @@ import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 
-/**
- * 将fx应用强制设置为cglib代理
- * @author tja41
- *
- */
 @Register
-public class FxApplicationPostProcess implements RegisterRefreshProcess,InstanceBeforeProcesser,FactoryRefreshProcess{
-
-	@Override
-	public void process(PlugsFactory plugsFactory, RegisterDefinition currentRegisterDefinition) {
-//		System.err.println(currentRegisterDefinition.getRegisterClass());
-		if(FxApplication.class.isAssignableFrom(currentRegisterDefinition.getRegisterClass())
-				||LazyLoader.class.isAssignableFrom(currentRegisterDefinition.getRegisterClass())) {
-			currentRegisterDefinition.setProxyModel(ProxyModel.CGLIB);
+public class DefaultBindBuilder implements BindBuilder{
+	
+	public Map<String,Property<?>> builder(Object instance){
+		Map<String,Property<? extends Object>> map;
+		if(instance instanceof PropertySupport) {
+			map = ((PropertySupport)instance).getProperty();
+		}else {
+			Class<?> endClass = Object.class;
+			if(instance instanceof FxApplication) {
+				endClass = FxApplication.class;
+			}
+			Assert.isTrue(PlugsFactory.isProxy(instance),"instance "+instance+" is not proxy!");
+			RegisterDefinition registerDefinition = PlugsFactory.getPluginsHandler(instance)
+					.getRegisterDefinition();
+			map = buildMapping(registerDefinition, endClass, instance);
 		}
+		
+		return map;
 	}
-
-	private void buildMethodMapping(RegisterDefinition currentRegisterDefinition,Class<?> endClass,Object instance) {
+//	public static void main(String[] args) {
+////		Map map = new DefaultBindBuilder().builder(new DeviceEditWindow());
+////		System.err.println("-----------");
+////		System.err.println(map);
+//		QemuCommand qemu = new QemuCommand();
+//		PlugsFactory.init(new StandScanResource("classpath*:**"));
+//		ComCommand device = PlugsFactory.getPluginsInstance(ComCommand.class);
+//		Map<String,Property<?>> map = new DefaultBindBuilder().builder(device);
+//		device.setName("xxx");
+//		System.err.println("-----------");
+//		System.err.println(map);
+//		map.values().forEach(item->{
+//			((Property<String>)item).setValue(((int)(Math.random()*100))+"");
+//		});;
+//		System.err.println(device);
+//	}
+	private Map<String,Property<?>> buildMapping(RegisterDefinition currentRegisterDefinition,Class<?> endClass,Object instance) {
+		Map<String,Property<?>> map = new HashMap<>();
 		Field[] fields = ReflectUtils.getAllFields(currentRegisterDefinition.getRegisterClass(), endClass);
+		DataSource parentDataSource = currentRegisterDefinition.getRegisterClass().getAnnotation(DataSource.class);
 		for(Field field : fields) {
 			DataSource dataSource = field.getAnnotation(DataSource.class);
-			if(dataSource != null) {
+			String namespace = null;
+			if(parentDataSource != null) {
+				namespace = parentDataSource.value();
+				if(dataSource != null) {
+					namespace += "."+dataSource.value();
+				}else {
+					namespace += "."+field.getName();
+				}
+			}else {
+				if(dataSource != null) {
+					namespace = dataSource.value();
+				}
+			}
+			
+			if(namespace != null) {
 				String fieldSetMethod = ReflectUtils.createFieldSetMethod(field.getName());
 				Method method;
 				try {
@@ -64,15 +89,22 @@ public class FxApplicationPostProcess implements RegisterRefreshProcess,Instance
 					throw new RuntimeException("could not found field set method "+fieldSetMethod
 							+" at "+currentRegisterDefinition.getRegisterClass().getName(),e);
 				}
-				String namespace = dataSource.value();
 				Property<?> property =  getFieldProperty(instance, field);
-				BindContext.getContext().addProperty(namespace,method,property);
+//				property.addListener((o,od,ne)->{
+//					try {
+//						ReflectUtils.setFieldValue(field, instance, ne);
+//					} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+//						throw new RuntimeException("failed to set field value "+field.getDeclaringClass().getName()+"."+field.getName()+" ["+ne+"]",e);
+//					}
+//				});
+//				BindContext.getContext().addProperty(namespace, method, property);
 				currentRegisterDefinition.addMethodHandler(method,
-						PlugsFactory.getPluginsInstance(DataSourceHandler.class));
+						PlugsFactory.getPluginsInstance(DataSourceHandler.class,property,field));
+				map.put(namespace, property);
 			}
 			
 		}
-		
+		return map;
 	}
 	public static Property<?> getFieldProperty(Object instance, Field field) {
         Class<?> type = field.getType();
@@ -105,23 +137,5 @@ public class FxApplicationPostProcess implements RegisterRefreshProcess,Instance
 		});
         return property;
     }
-
-	@Override
-	public Object before(RegisterDefinition registerDefinition, Class<?> serviceClasss, Object instance) {
-		if(FxApplication.class.isAssignableFrom(registerDefinition.getRegisterClass())) {
-			buildMethodMapping(registerDefinition,FxApplication.class,instance);
-		}
-		return instance;
-	}
-
-	@Override
-	public void process(PlugsFactory plugsFactory) {
-		plugsFactory.addPlugininDefinition(FxFieldPostProcess.class);
-		plugsFactory.addPlugininDefinition(FxFieldProcess.class);
-		plugsFactory.addPlugininDefinition(FxFieldBeforeProcess.class);
-		plugsFactory.addPlugininDefinition(FxMethodPostProcess.class);
-		plugsFactory.addPlugininDefinition(FxMethodProcess.class);
-		plugsFactory.addPlugininDefinition(FxMethodBeforeProcess.class);
-	}
 
 }

@@ -14,7 +14,7 @@ import javafx.scene.layout.Region;
 public class MatchParentAdapter implements FxFieldProcess<MatchParent>{
 
 	@Override
-	public void adapter(FxApplication fxApplication, Field field, MatchParent annotation) throws Exception {
+	public void adapter(FxApplication fxApplication,Object instance, Field field, MatchParent annotation) throws Exception {
 		Region view = fxApplication.findViewByField(field);
 		Region parent = (Region) view.getParent();
 		if(parent == null) {

@@ -11,7 +11,7 @@ import javafx.event.Event;
 import javafx.event.EventHandler;
 
 public interface FxFieldProcess<T extends Annotation> {
-	public void adapter(FxApplication fxApplication,Field field,T annotation) throws Exception;
+	public void adapter(FxApplication fxApplication,Object instance,Field field,T annotation) throws Exception;
 	public static class DefaultMethodAdapter{
 		public static <T> ChangeListener<T> onChangeListener(Method method,FxApplication fxApplication) {
 			ChangeListener<T> changeListener = (observable,oldValue,newValue)->{

@@ -316,6 +316,12 @@ public class FXMLLoader {
                 		 parentElement = parentElement.parent;
                 	 }
                 	 Object parent = parentElement== null? null : parentElement.value;
+                	 if(parent == null && FXMLLoader.this.parentNode != null) {
+                		 parent = FXMLLoader.this.parentNode;
+                	 }
+                	 if(parent == null) {
+                		 parent = root;
+                	 }
                 	 if(!fxmlAttrProcess.process(FXMLLoader.this, attribute.sourceType, attribute.name, value, this.value, parent)) {
                 		 processValue(attribute.sourceType, attribute.name, value);
                 	 }
@@ -1829,7 +1835,17 @@ public class FXMLLoader {
 
     private FXMLLoader parentLoader;
 
-    private XMLStreamReader xmlStreamReader = null;
+    private Object parentNode;
+    
+	public Object getParentNode() {
+		return parentNode;
+	}
+
+	public void setParentNode(Object parentNode) {
+		this.parentNode = parentNode;
+	}
+
+	private XMLStreamReader xmlStreamReader = null;
     private Element current = null;
 
     private ScriptEngine scriptEngine = null;
@@ -2070,6 +2086,14 @@ public class FXMLLoader {
             }
         });
     }
+    public FXMLLoader getParentLoader() {
+		return parentLoader;
+	}
+
+	public void setParentLoader(FXMLLoader parentLoader) {
+		this.parentLoader = parentLoader;
+	}
+
 
     /**
      * Creates a new FXMLLoader instance.
@@ -2615,7 +2639,12 @@ public class FXMLLoader {
             // Clear the parser
             xmlStreamReader = null;
         }
-
+        if(this.parentLoader != null) {
+//        	 this.namespace.forEach((key,value)->{
+//             	
+//             });
+        	this.parentLoader.getNamespace().putAll(this.namespace);
+        }
         return (T)root;
     }
 

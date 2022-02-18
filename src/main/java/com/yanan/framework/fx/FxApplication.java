@@ -5,9 +5,12 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sun.javafx.collections.ObservableListWrapper;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigList;
@@ -31,8 +34,11 @@ import com.yanan.utils.string.StringUtil;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableListBase;
 import javafx.event.EventTarget;
 import javafx.fxml.JavaFXBuilderFactory;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Menu;
@@ -56,6 +62,7 @@ public abstract class FxApplication extends Application{
 		return currentFxApplication.get();
 	}
 
+	
 	@SuppressWarnings("unchecked")
 	public <T extends Parent> T getRootView() {
 		return (T) root;
@@ -307,6 +314,31 @@ public abstract class FxApplication extends Application{
 			stage.show();
 		}
 	}
+	public void start(Stage stage,FXMLLoader fxmlLoader) throws Exception {
+		this.primaryStage = stage;
+		appClass = getClass();
+		if(PlugsFactory.isProxy(this)) {
+			PlugsHandler plugsHandler = PlugsFactory.getPluginsHandler(this);
+			appClass = plugsHandler.getRegisterDefinition().getRegisterClass();
+		}
+		boolean isMain = true;
+		if(stage.getScene() == null) {
+			currentFxApplication.set(this);
+			buildView();
+			Scene scence = new Scene(root);
+			stage.setScene(scence);
+		}else {
+			parent = currentFxApplication.get();
+			buildView();
+			isMain = false;
+		}
+		bind();
+		this.startApp(stage);
+		bindPost();
+		if(isMain) {
+			stage.show();
+		}
+	}
 	private void bindPost() throws Exception{
 		fieldPostProcess();
 		methodPostProcess();
@@ -354,7 +386,7 @@ public abstract class FxApplication extends Application{
 					public void onChanged(Change<? extends String, ? extends Object> change) {
 						if(StringUtil.equals(change.getKey(), ((LazyLoader<Annotation>)listener).id(annotation,field))){
 							try {
-								listener.adapter(FxApplication.this, field,annotation);
+								listener.adapter(FxApplication.this,FxApplication.this, field,annotation);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -362,7 +394,7 @@ public abstract class FxApplication extends Application{
 					}
 				});
 			}else {
-				listener.adapter(this, field,annotation);
+				listener.adapter(this,this, field,annotation);
 			}
 		} catch (Exception e) {
 			throw new RuntimeException("exception occur at process field " +field+" at "+this.appClass.getName(),e);
@@ -392,4 +424,61 @@ public abstract class FxApplication extends Application{
 			throw new RuntimeException("exception occur at process method " +method+" at "+this.appClass.getName(),e);
 		}
 	}
+	protected <T> T loadFxml(Resource resource) {
+		try {
+			return loadFxml(resource.getURI().toURL());
+		} catch (MalformedURLException e) {
+			throw new RuntimeException("failed load resource!",e);
+		}
+	}
+
+	protected <T> T loadFxml(URL url) {
+		FXMLLoader childLoader = new FXMLLoader();
+		childLoader.setParentLoader(this.fxmlLoader);
+		childLoader.setLocation(url);
+		try {
+		T node = childLoader.load();
+		return node;
+		} catch (IOException e) {
+			throw new RuntimeException("failed load resource!",e);
+		}
+	}
+	
+	protected <T> T loadFxml(Resource resource,Node parent) {
+		try {
+			return loadFxml(resource.getURI().toURL(),parent);
+		} catch (MalformedURLException e) {
+			throw new RuntimeException("failed load resource!",e);
+		}
+	}
+	protected FXMLLoader loadFromFxml(Resource resource,Node parent) {
+		try {
+			return loadFromFxml(resource.getURI().toURL(),parent);
+		} catch (MalformedURLException e) {
+			throw new RuntimeException("failed load resource!",e);
+		}
+	}
+	protected FXMLLoader loadFromFxml(URL url,Node parent) {
+		FXMLLoader childLoader = new FXMLLoader();
+		childLoader.setParentLoader(this.fxmlLoader);
+		childLoader.setLocation(url);
+		childLoader.setParentNode(parent);
+		return childLoader;
+	}
+	protected <T> T loadFxml(URL url,Node parent) {
+		FXMLLoader childLoader = new FXMLLoader();
+		childLoader.setParentLoader(this.fxmlLoader);
+		childLoader.setLocation(url);
+		childLoader.setParentNode(parent);
+		try {
+		T node = childLoader.load();
+//		fxmlLoader.getNamespace().putAll(child);
+//		ObservableList list = (ObservableList) fxmlLoader.getNamespace().get("childFxml");
+		fxmlLoader.getNamespace().put(url.toString(), node);
+		return node;
+		} catch (IOException e) {
+			throw new RuntimeException("failed load resource!",e);
+		}
+	}
+	
 }

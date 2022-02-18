@@ -14,9 +14,9 @@ public class BindFieldGuoupProcess implements FxFieldPostProcess<BindGroup>{
 	private FxFieldPostProcess<Bind> bindFieldProcess;
 
 	@Override
-	public void adapter(FxApplication fxApplication, Field field, BindGroup annotation) throws Exception {
+	public void adapter(FxApplication fxApplication,Object instance, Field field, BindGroup annotation) throws Exception {
 		for(Bind bind : annotation.value()) {
-			bindFieldProcess.adapter(fxApplication, field, bind);
+			bindFieldProcess.adapter(fxApplication,instance, field, bind);
 		}
 	}
 }
