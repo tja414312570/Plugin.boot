@@ -7,8 +7,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
-
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -16,6 +14,7 @@ import com.yanan.framework.boot.BootArgs;
 import com.yanan.framework.boot.PluginBootServer;
 import com.yanan.framework.resource.DefaultResourceLoader;
 import com.yanan.framework.resource.ResourceLoader;
+import com.yanan.utils.IOUtils;
 import com.yanan.utils.resource.Resource;
 
 @BootArgs(name="-environment-boot",value="com.yanan.framework.boot.StandEnvironmentBoot")

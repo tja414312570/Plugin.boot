@@ -7,9 +7,9 @@ import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 
-import com.yanan.framework.a.core.BufferReady;
-import com.yanan.framework.a.core.ByteBufferChannel;
-import com.yanan.framework.a.core.MessageSerialization;
+import com.yanan.framework.ant.core.BufferReady;
+import com.yanan.framework.ant.core.ByteBufferChannel;
+import com.yanan.framework.ant.core.MessageSerialization;
 import com.yanan.framework.ant.exception.AntMessageResolveException;
 import com.yanan.framework.plugin.annotations.Register;
 import com.yanan.framework.plugin.annotations.Service;

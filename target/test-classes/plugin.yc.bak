@@ -1,0 +1,17 @@
+###################### plugin list
+plugins:[
+		com.yanan.framework.plugin.autowired.plugin.PluginWiredHandler, ##服务注入提供
+		com.yanan.framework.plugin.autowired.resource.ResourceWiredHandler, ##资源类注入
+		com.yanan.framework.plugin.autowired.property.PropertyWiredHandler, ##属性注入
+		com.yanan.framework.plugin.autowired.exception.ErrorPlugsHandler, ##错误记录
+		com.yanan.framework.plugin.autowired.plugin.PluginWiredHandler, ##组件注入服务 @Service
+		com.yanan.framework.plugin.autowired.property.PropertyWiredHandler, ##属性注入服务 @Property
+		com.yanan.framework.plugin.autowired.property.PropertyWiredHandlerPlugin,##属性扫描工具
+		com.yanan.framework.plugin.autowired.resource.ResourceWiredHandler, ##资源注入服务 @Resource
+		com.yanan.framework.plugin.hot.ClassHotUpdater,##动态更新服务
+		com.yanan.framework.servlets.RestControllerUpdater,
+		
+	]
+ClassHotUpdater:{
+	contextPath:"/Volumes/GENERAL/git/plugin.boot/target/classes.**Test*"
+}

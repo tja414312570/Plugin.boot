@@ -64,7 +64,7 @@ public class StandEnvironmentBoot implements EnvironmentBoot{
 	}
 	public void loadModelPlugin(Environment environment) {
 		if(environment.getVariable("-environment-scan") != null) {
-			PlugsFactory.getInstance().addScanPath((String[])environment.getVariable("-environment-scan"));
+			PlugsFactory.getInstance().addScanPath((String)environment.getVariable("-environment-scan"));
 		}else {
 			PlugsFactory.getInstance().addScanPath("classpath*:**");
 		}

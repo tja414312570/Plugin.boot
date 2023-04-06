@@ -7,12 +7,11 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import org.apache.commons.io.IOUtils;
-
 import com.yanan.framework.boot.BootArgs;
 import com.yanan.framework.boot.PluginBootServer;
 import com.yanan.framework.resource.DefaultResourceLoader;
 import com.yanan.framework.resource.ResourceLoader;
+import com.yanan.utils.IOUtils;
 import com.yanan.utils.resource.Resource;
 
 @BootArgs(name="-environment-boot",value="com.yanan.framework.boot.StandEnvironmentBoot")

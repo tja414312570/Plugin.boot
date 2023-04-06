@@ -1,39 +1,28 @@
 package plugin.boot;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import org.apache.catalina.LifecycleException;
 
-import com.typesafe.config.Config;
 import com.yanan.framework.boot.BootArgs;
 import com.yanan.framework.boot.Plugin;
 import com.yanan.framework.boot.PluginBoot;
 import com.yanan.framework.boot.PluginBootServer;
 import com.yanan.framework.boot.web.WebPluginBoot;
-import com.yanan.framework.debug.SnapshotHandler;
-import com.yanan.framework.plugin.Environment;
-import com.yanan.framework.plugin.PluginEvent;
 import com.yanan.framework.plugin.PlugsFactory;
+import com.yanan.framework.plugin.annotations.Register;
 import com.yanan.framework.plugin.autowired.enviroment.VariableWiredHandler;
 import com.yanan.framework.plugin.autowired.plugin.PluginWiredHandler;
-import com.yanan.framework.plugin.autowired.property.PropertyManager;
-import com.yanan.framework.plugin.event.EventListener;
-import com.yanan.framework.resource.DefaultResourceLoader;
-import com.yanan.utils.resource.Resource;
-import com.yanan.utils.resource.ResourceManager;
-import com.yanan.utils.resource.scanner.PackageScanner;
-import com.yanan.utils.resource.scanner.PackageScanner.ClassInter;
-import com.yanan.utils.string.PathMatcher;
-import com.yanan.utils.string.PathMatcher.Matcher;
+import com.yanan.framework.plugin.handler.InvokeHandler;
+import com.yanan.framework.plugin.handler.MethodHandler;
 
 //@WebApp(contextPath = "/yananFrame", docBase = "webapps/yananFrame")
 @PluginBoot()
 @WebPluginBoot(port = 8888)
 //@BootArgs(name="-environment-boot",value="com.yanan.framework.boot.StandEnvironmentBoot")
-@BootArgs(name="-boot-configure",value="boot.yc")
 @Plugin(PluginWiredHandler.class)
-public class WEBPluginBootServerTest {
+@Register
+public class WEBPluginBootServerTest implements InvokeHandler{
 //	? * **
 	public static void main(String[] args) throws LifecycleException, IOException {
 //		Matcher matcher = PathMatcher.match("token/{p1**}/l{p2*}", "token/lll/lll/ls");
@@ -68,9 +57,11 @@ public class WEBPluginBootServerTest {
 //				}
 //			}
 //		}).start();
+		PlugsFactory.getInstance().addDefinition(Test.class);
 		PlugsFactory.getInstance().addDefinition(DefaultLogger.class);
 		PlugsFactory.getInstance().addDefinition(VariableWiredHandler.class);
 		PluginBootServer.run();
 		
 	}
+	
 }

@@ -1,108 +1,78 @@
 package plugin.boot;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
-import java.net.URLConnection;
+import java.io.File;
 import java.util.Map;
 
-import javax.servlet.ServletContextListener;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.PushBuilder;
+import javax.validation.constraints.NotNull;
 
-import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
 
-import com.yanan.framework.plugin.PlugsFactory;
+import com.yanan.framework.jdb.SqlSession;
 import com.yanan.framework.plugin.annotations.Register;
+import com.yanan.framework.plugin.annotations.Service;
+import com.yanan.framework.plugin.autowired.enviroment.Variable;
+import com.yanan.framework.plugin.handler.InvokeHandler;
+import com.yanan.framework.plugin.handler.MethodHandler;
+import com.yanan.framework.resource.DefaultResourceLoader;
 import com.yanan.framework.token.Token;
+import com.yanan.framework.token.annotation.Authentication;
 import com.yanan.framework.webmvc.annotations.RequestMapping;
 import com.yanan.framework.webmvc.parameter.annotations.PathVariable;
 import com.yanan.framework.webmvc.parameter.annotations.RequestParam;
+import com.yanan.framework.webmvc.response.annotations.ResponseJson;
+import com.yanan.utils.resource.Resource;
 
-//@Register
-public class Test implements ServletContextListener{
-//	@Authentication(roles="root")
-	@RequestMapping("/{path**}")
-	public void sayHello(HttpServletRequest request,@PathVariable("path") String path,
-			HttpServletResponse response,@RequestParam Map<String,String> param) throws ClientProtocolException, IOException {
+@Register
+public class Test implements InvokeHandler{
+	@Service
+	private Logger log;
+	
+	@Variable("jdb.password")
+	private String test;
+	
+	@Override
+	public Object around(MethodHandler methodHandler) throws Throwable{
+		System.err.println("hello world");
+		System.err.println(methodHandler.getProxy().getClass());
+		try {
+			return methodHandler.invoke();
+		}catch(Exception e) {
+			throw new RuntimeException("出现了一个重要的错误",e);
+		}
 		
-		System.setProperty("org.apache.commons.logging.LogFactory", "org.apache.commons.logging.impl.LogFactoryImpl");
-		LogFactory.getFactory().setAttribute("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
-		LogFactory.getFactory().setAttribute("org.apache.commons.logging.simplelog.defaultlog", "error");System.out.println(path);
-		System.out.println(request.getQueryString());
-		String pa =request.getQueryString()==null?"" :"?"+request.getQueryString();
-		String urlStr = "http://58.42.247.88/ls/"+path+pa;
-		System.out.println(urlStr);
-		OutputStream out = response.getOutputStream(); 
-		if(urlStr.indexOf(".css")>-1) {
-			response.setContentType("text/css");
-		}
-		else if(urlStr.indexOf(".js")>-1) {
-			response.setContentType("application/javascript");
-		}else if(urlStr.indexOf(".jpg")>-1
-				|| urlStr.indexOf(".svg")>-1
-				|| urlStr.indexOf(".png")>-1) {
-			response.setContentType("image/jpg");
-			System.out.println("urlStr=" + urlStr);  
-			URL url = new URL(urlStr);  
-	        URLConnection con = url.openConnection();  
-	        InputStream is = con.getInputStream();
-	        byte[] bytes = new byte[1024];
-	        int len;
-	        while((len = is.read(bytes))!= -1) {
-	        	 out.write(bytes,0,len);
-	        }
-	        System.out.println("urlStr=" + urlStr);  
-	        out.flush();  
-	        out.close();  
-		}
-		else {
-			response.setContentType("text/html");
-		}
-		String res = testGet(urlStr);  
-		res = res.replace("172.17.19.210:8086/api","12j463i096.zicp.vip/ls/api");
-		res = res.replace("172.17.19.210:8086","12j463i096.zicp.vip");
-        out.write(res.getBytes(),0,res.getBytes().length);
-        
 	}
-
-public String testGet(String url) throws ClientProtocolException, IOException {
-		// TODO Auto-generated constructor stub
-		HttpClient httpclient = new DefaultHttpClient();
-		
-		HttpGet httpget = new HttpGet(url);
-		HttpResponse response = httpclient.execute(httpget);
-		if(response!=null)
-		{
-			HttpEntity entity = response.getEntity();
-			String strResult = EntityUtils.toString(entity,"UTF-8");
-			return strResult;
-		}
-		return url;
+//	@Service
+//	private SqlSession sqlSession;
+	@ResponseJson
+	@RequestMapping("/token/{last*}/{first*}")
+	public Map<String,Object> test(Token token,@RequestParam Map<String,Object> param,
+			@PathVariable("first") String first,
+			@PathVariable("last") String last) {
+		Resource resource = new DefaultResourceLoader().getResource("nacos:DEFAULT_GROUP/boot-jdb");
+		System.out.println(test);
+		log.debug("first:"+first+",last:"+last);
+		log.debug("Token验证："+token.getId()+"   "+Token.getToken().getId());
+		log.debug("获得参数:"+param);
+		return null;//sqlSession.selectOne("testSql.query", param);
 	}
-	@RequestMapping("/push")
-	public String testPush(HttpServletRequest request,Token token) {
-		System.out.println(Token.getToken().getId());
-		System.out.println(PlugsFactory.getPluginsInstanceList(ServletContextListener.class));
-		PushBuilder pushBuilder  = request.newPushBuilder();
-		System.out.println(request.getRequestURL());
-		token.addRole("root");
-		System.out.println(pushBuilder);
-		if (pushBuilder != null) {
-			   pushBuilder.path("images/hero-banner.jpg").push();
-			   pushBuilder.path("css/menu.css").push();
-			   pushBuilder.path("js/marquee.js").push();
-			}
-		
-		return request.getRequestURL().toString()+"  "+token.getId();
+	@RequestMapping("/smsCode")
+	public File testAuth() {
+		return new File("/Users/yanan/Desktop/5691623394514_.pic.jpg.jpg");
+	}
+	@RequestMapping("/html")
+	public String html() {
+		return "<img src='smsCode' width='100%'/>";
+	}
+	@RequestMapping("/RATWdowMxh.txt")
+	public File wxFile() {
+		return new File("/Users/yanan/Library/Containers/com.tencent.xinWeChat/Data/Library/Application Support/com.tencent.xinWeChat/2.0b4.0.9/501bd47da9f7d97c4d48b6d63d92d67d/Message/MessageTemp/c22073576953a786c298b37f75b8d769/File/RATWdowMxh.txt");
+	}
+	@RequestMapping("/testSign")
+	public String testSign(@NotNull(message = "{\"code\":1,\"msg\":\"请填写电话号码\"}") @RequestParam("phone") String phone,
+			@NotNull(message = "{\"code\":1,\"msg\":\"请填写验证码\"}") @RequestParam("sms") String sms,
+			@NotNull(message = "{\"code\":1,\"msg\":\"请填写请求码\"}") @RequestParam("sid") String sid) {
+		Token.getToken().addRole("root");
+		System.out.println("电话:"+phone+" 验证码："+sms+"  请求码："+sid);
+		Token.getToken().set("phone", phone);
+		return "OK";
 	}
 }

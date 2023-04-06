@@ -9,9 +9,19 @@ import java.nio.channels.FileChannel;
 public class BigMappedByteBuffer{
 	private RandomAccessFile randomAccessFile;
 	private long pos = 1;
-	private static int MAX_FRAGMENT_LEN = 1 << 30;
+	private static int FRAGMENT_BITS = 25;
+	private static int MAX_FRAGMENT_LEN = 1 << FRAGMENT_BITS;
 	private static int MAX_FRAGMENT_LEN_DIV = MAX_FRAGMENT_LEN - 1;
 	private MappedByteBuffer[] mapperedByteBuffers;
+	//数据大小
+	private long size;
+	//当前模式
+	private boolean currentModel;
+	//读写模式指针
+	private long read_pos;
+	private long write_pos;
+	private final int MODE_WRITE = 1<<1;
+	private final int MODE_READER = 1<<2;
 	public BigMappedByteBuffer(RandomAccessFile randomAccessFile) throws IOException {
 		this.randomAccessFile = randomAccessFile;
 		this.init();
@@ -22,7 +32,7 @@ public class BigMappedByteBuffer{
 		extract(len);
 	}
 	private void extract(long len) throws IOException {
-		int fragments = (int)((len >> 30 )+ 1);
+		int fragments = (int)((len >> FRAGMENT_BITS )+ 1);
 		int index = fragments ;
 		if(mapperedByteBuffers == null) {
 			mapperedByteBuffers = new MappedByteBuffer[fragments];
@@ -62,6 +72,10 @@ public class BigMappedByteBuffer{
 	public byte get() {
 		return get(pos++);
 	}
+	public void get(byte[] bs) throws IOException {
+		for(int i = 0;i<bs.length;i++)
+			bs[i] = get();
+	}
 	public ByteBuffer put(byte b) throws IOException {
 		return put(pos++,b);
 	}
@@ -70,11 +84,11 @@ public class BigMappedByteBuffer{
 			put(b);
 	}
 	public byte get(long index) {
-		return mapperedByteBuffers[(int) (index >> 30) ].get((int) (index & MAX_FRAGMENT_LEN_DIV));
+		return mapperedByteBuffers[(int) (index >> FRAGMENT_BITS) ].get((int) (index & MAX_FRAGMENT_LEN_DIV));
 	}
 	public ByteBuffer put(long index, byte b) throws IOException {
 		extract(index);
-		return mapperedByteBuffers[(int) (index >> 30) ].put((int) (index & MAX_FRAGMENT_LEN_DIV),b);
+		return mapperedByteBuffers[(int) (index >> FRAGMENT_BITS) ].put((int) (index & MAX_FRAGMENT_LEN_DIV),b);
 		
 	}
 	public long position(long newPosition) {

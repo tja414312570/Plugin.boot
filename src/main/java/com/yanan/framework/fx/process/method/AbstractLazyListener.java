@@ -29,10 +29,14 @@ public abstract class AbstractLazyListener implements LazyLoader<Annotation> {
 			if(id == null) {
 				id = memberMap.get("value");
 			}
-			return id;
+			return getId(id);
 		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
 			throw new RuntimeException("could not found id for anno "+annotation,e);
 		}
+	}
+
+	protected String getId(String id) {
+		return id;
 	}
 
 }

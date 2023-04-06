@@ -12,6 +12,6 @@ import java.lang.annotation.Target;
  *
  */
 @Retention(RUNTIME)
-@Target({ ElementType.FIELD , ElementType.METHOD})
+@Target({ ElementType.FIELD , ElementType.METHOD,ElementType.TYPE})
 public @interface LazyLoad {
 }

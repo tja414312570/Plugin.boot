@@ -359,10 +359,8 @@ public class HashFile {
 			}
 		}
 		if(hashNode(hashNode)>5) {
-			System.err.println("==========");
 			HashNode node = hashNode;
 			while(node != null) {
-				System.out.println(node.getHashCode()+"===>"+node.hashCode()+"==>"+ByteUtils.bytesToLong(node.getKey()));
 				node = node.nextNode(); 
 			}
 		}
@@ -507,6 +505,11 @@ public class HashFile {
 		this.nodeFile.delete();
 		this.valueFile.delete();
 		init();
+	}
+	public void destory(){
+		this.indexFile.delete();
+		this.nodeFile.delete();
+		this.valueFile.delete();
 	}
 	private long getPosIndex(long hash) {
 		long pos = ((hash & (MAX_INDEX_LEN/INDEX_BYTES_LEN)))*INDEX_BYTES_LEN;

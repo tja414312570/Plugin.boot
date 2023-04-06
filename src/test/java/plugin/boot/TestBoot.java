@@ -7,32 +7,29 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.catalina.LifecycleException;
 
+import com.alibaba.nacos.common.utils.Observable;
+import com.yanan.framework.plugin.PlugsFactory;
+import com.yanan.framework.plugin.decoder.StandScanResource;
+import com.yanan.framework.resource.DefaultResourceLoader;
 import com.yanan.utils.ArrayUtils;
+import com.yanan.utils.beans.xml.Value;
+import com.yanan.utils.resource.Resource;
 import com.yanan.utils.resource.scanner.Path;
 
+import javafx.beans.value.ObservableStringValue;
+import javafx.collections.ObservableArray;
+
 public class TestBoot {
+	
+	@Value
+	private String name;
+	
 	public static void main(String[] args) throws LifecycleException, UnsupportedEncodingException {
-		File file = new File("/Users/yanan/Desktop/C++资料.txt");///Volumes/GENERAL
-//		StringHashMap map = new StringHashMap();
-		Path path = new Path(file);
-		path.scanner((files)->{
-			if(files.getName().endsWith(".download") || files.isDirectory() && ArrayUtils.isEmpty(files.list())
-					|| files.length() == 0l) {
-				new Thread(()->{
-					System.out.println(files);
-					files.delete();
-				}).start();
-			}
-//			File child ;
-//			if(map.get(files.getName()) != null) {
-//				child = map.get(files.getName());
-//				
-//				System.err.println(files+"===>"+child+"----"+child.lastModified()+"----"+child.length());
-//			}else {
-//				map.put(files.getName(), files);
-//				child = map.get(files.getName());
-////				System.out.println(files.getName()+"-->"+child+"----"+child.lastModified()+"----"+child.length());
-//			}
-		});
+		
+		PlugsFactory.init(new StandScanResource("classpath*:**"));
+		
+		Resource resource = new DefaultResourceLoader().getResource("http://192.168.1.110:8091/scf/user/login");
+		
+		System.err.println(resource);
 	}
 }

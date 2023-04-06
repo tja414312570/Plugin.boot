@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import com.yanan.framework.fx.BeanAdapter;
 import com.yanan.framework.fx.FXMLLoader;
 import com.yanan.framework.plugin.annotations.Register;
+import com.yanan.utils.asserts.Assert;
 import com.yanan.utils.reflect.ReflectUtils;
 
 import javafx.beans.binding.NumberExpression;
@@ -19,7 +20,7 @@ public class SizeProcess implements FxmlAttrProcess{
 	public boolean process(FXMLLoader fxmlLoader, Class<?> sourceType, String attrName, String attrValue, Object node,
 			Object parent) {
 		
-		if (attrValue.equals("matchParent")) {
+		if (attrValue.equals("match_parent")) {
 			if(attrName == "size") {
 				processSize(sourceType, "width", attrValue, node, parent);
 				processSize(sourceType, "height", attrValue, node, parent);
@@ -48,6 +49,7 @@ public class SizeProcess implements FxmlAttrProcess{
 							"Cannot found property " + node.getClass().getName() + "." + attrName);
 				}
 			}
+			Assert.isNotNull(parent,"could not found parent!");
 			NumberExpression parentModel = ReflectUtils.invokeMethod(parent, attrName + "Property");
 			double pos = 0;
 			if (attrName.toLowerCase().indexOf("width") != -1) {

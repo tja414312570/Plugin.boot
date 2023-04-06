@@ -10,6 +10,8 @@ import com.yanan.framework.jdb.SqlSession;
 import com.yanan.framework.plugin.annotations.Register;
 import com.yanan.framework.plugin.annotations.Service;
 import com.yanan.framework.plugin.autowired.enviroment.Variable;
+import com.yanan.framework.plugin.handler.InvokeHandler;
+import com.yanan.framework.plugin.handler.MethodHandler;
 import com.yanan.framework.resource.DefaultResourceLoader;
 import com.yanan.framework.token.Token;
 import com.yanan.framework.token.annotation.Authentication;
@@ -20,12 +22,19 @@ import com.yanan.framework.webmvc.response.annotations.ResponseJson;
 import com.yanan.utils.resource.Resource;
 
 @Register
-public class Test {
+public class Test implements InvokeHandler{
 	@Service
 	private Logger log;
 	
 	@Variable("jdb.password")
 	private String test;
+	
+	@Override
+	public Object around(MethodHandler methodHandler) {
+		System.err.println("hello world");
+		System.err.println(methodHandler.getProxy().getClass());
+		return null;
+	}
 //	@Service
 //	private SqlSession sqlSession;
 	@ResponseJson

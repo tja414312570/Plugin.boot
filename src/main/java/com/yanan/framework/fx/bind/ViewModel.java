@@ -14,5 +14,9 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 @Target({ ElementType.FIELD })
 public @interface ViewModel {
+
+	String value() default "";
+	
+//	String parent() default "";
 	
 }

@@ -248,7 +248,8 @@ public class BeanAdapter extends AbstractMap<String, Object> {
      * @throws PropertyNotFoundException
      * If the given property does not exist or is read-only.
      */
-    @Override
+    @SuppressWarnings("restriction")
+	@Override
     public Object put(String key, Object value) {
         if (key == null) {
             throw new NullPointerException();

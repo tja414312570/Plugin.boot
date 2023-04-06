@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  *
  */
 @Retention(RUNTIME)
-@Target({ ElementType.FIELD })
+@Target({ ElementType.FIELD ,ElementType.TYPE})
 public @interface DataSource {
 	String value() default "";
 }

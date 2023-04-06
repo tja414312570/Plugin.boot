@@ -5,7 +5,12 @@ import java.sql.SQLException;
 import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 
+import com.yanan.framework.jdb.JDBContext;
+import com.yanan.framework.jdb.SqlSession;
 import com.yanan.framework.jdb.datasource.DefaultDataSource;
+import com.yanan.framework.jdb.mapper.DefaultSqlSessionExecuter;
+import com.yanan.framework.jdb.mapper.MapperInterfaceProxyBuilder;
+import com.yanan.framework.plugin.PlugsFactory;
 import com.yanan.framework.plugin.annotations.Register;
 import com.yanan.framework.plugin.annotations.Service;
 import com.yanan.framework.plugin.autowired.enviroment.Variable;
@@ -44,6 +49,9 @@ public class PluginBootJdbRegister {
 	@PostConstruct
 	public void start() {
 		logger.info("start plugin jdb service");
+		if(this.id == null) {
+			this.id = "default-data-source";
+		}
 		DefaultDataSource source = new DefaultDataSource();
 		source.setId(this.id);
 		source.setUrl(this.url);
@@ -61,6 +69,13 @@ public class PluginBootJdbRegister {
 				logger.info("booting jdb plugin");
 				source.setLoginTimeout(login_timeout);
 				source.init();
+				logger.info("source:"+source);
+				JDBContext jdbContext = PlugsFactory.getPluginsInstance(JDBContext.class,source);
+				logger.info("context:"+jdbContext);
+				SqlSession sqlSession = PlugsFactory.getPluginsInstance(DefaultSqlSessionExecuter.class,jdbContext);
+				logger.info("session:"+sqlSession);
+				MapperInterfaceProxyBuilder mapper = PlugsFactory.getPluginsInstance(MapperInterfaceProxyBuilder.class, sqlSession);
+				logger.info("mapper:"+mapper);
 			}else {
 				logger.info("not plugin jdb config");
 			}

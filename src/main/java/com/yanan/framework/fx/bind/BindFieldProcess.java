@@ -2,13 +2,14 @@ package com.yanan.framework.fx.bind;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
+
 import com.alibaba.nacos.api.utils.StringUtils;
 import com.yanan.framework.fx.FxApplication;
-import com.yanan.framework.fx.FxApplicationPostProcess;
 import com.yanan.framework.fx.bind.conver.PropertyAdapter;
 import com.yanan.framework.fx.process.field.FxFieldPostProcess;
 import com.yanan.framework.plugin.PlugsFactory;
 import com.yanan.framework.plugin.annotations.Register;
+import com.yanan.utils.asserts.Assert;
 import com.yanan.utils.reflect.ReflectUtils;
 import com.yanan.utils.reflect.TypeToken;
 
@@ -16,7 +17,7 @@ import javafx.beans.property.Property;
 
 @Register(attribute = "Bind")
 public class BindFieldProcess implements FxFieldPostProcess<Bind>{
-
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void adapter(FxApplication fxApplication, Field field, Bind annotation) throws Exception {
@@ -24,7 +25,7 @@ public class BindFieldProcess implements FxFieldPostProcess<Bind>{
 		String propertyName = annotation.property();
 		Property<Object> fieldProperty;
 		if(StringUtils.isEmpty(propertyName)) {
-			fieldProperty = (Property<Object>) FxApplicationPostProcess.getFieldProperty(fxApplication, field);
+			fieldProperty = (Property<Object>) DefaultBindBuilder.getFieldProperty(fxApplication, field);
 		}else {
 			Object instance = ReflectUtils.getFieldValue(field, fxApplication);
 			fieldProperty = ReflectUtils.invokeMethod(instance, propertyName+"Property");
@@ -42,6 +43,7 @@ public class BindFieldProcess implements FxFieldPostProcess<Bind>{
 			targetProperty =  ReflectUtils.invokeMethod(view,property+"Property");
 		}else {
 			targetProperty = BindContext.getContext().getProperty(target);
+			Assert.isNotNull(targetProperty,"could not found property for "+target+" at field "+field.getDeclaringClass().getName()+"."+field.getName());
 		}
 		String adpater = annotation.adapter();
 		if(StringUtils.isEmpty(adpater)) {
