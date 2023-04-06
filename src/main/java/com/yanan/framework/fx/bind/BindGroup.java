@@ -13,6 +13,6 @@ import java.lang.annotation.Target;
  */
 @Retention(RUNTIME)
 @Target({ ElementType.FIELD })
-public @interface BindGroup {
+public @interface BindGroup {     
 	Bind[] value();
 }
